@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, OffthreadVideo, Img, useVideoConfig } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
+import { SmartImage } from '../../components/SmartImage';
 
 export const phoneMockupSchema = z.object({
   src: z.string(),
@@ -60,9 +61,9 @@ export const PhoneMockup: React.FC<z.infer<typeof phoneMockupSchema>> = ({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }} 
                 />
             ) : (
-                <Img 
+                <SmartImage 
                     src={src} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }} 
+                    style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} 
                 />
             )}
         </div>

@@ -1,6 +1,7 @@
 import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, Img, interpolate, spring } from "remotion";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
+import { SmartImage } from "../../components/SmartImage";
 
 export const knowledgeCardSchema = z.object({
   title: z.string(),
@@ -26,7 +27,7 @@ export const KnowledgeCard: React.FC<z.infer<typeof knowledgeCardSchema>> = ({
     <AbsoluteFill style={{ backgroundColor, padding: 60 }}>
       {backgroundImage && (
         <AbsoluteFill style={{ zIndex: 0 }}>
-            <Img src={backgroundImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <SmartImage src={backgroundImage} style={{ width: '100%', height: '100%' }} />
         </AbsoluteFill>
       )}
       <AbsoluteFill style={{ padding: 60, zIndex: 1 }}>
@@ -78,11 +79,11 @@ export const KnowledgeCard: React.FC<z.infer<typeof knowledgeCardSchema>> = ({
             </div>
             {imageUrl && (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                     <Img 
+                     <SmartImage 
                         src={imageUrl} 
                         style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '100%', 
+                            width: '100%', 
+                            height: '100%', 
                             borderRadius: 20,
                             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                             opacity: interpolate(frame, [10, 30], [0, 1])

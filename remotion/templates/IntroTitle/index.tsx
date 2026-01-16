@@ -1,6 +1,7 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Img } from "remotion";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
+import { SmartImage } from "../../components/SmartImage";
 
 export const introTitleSchema = z.object({
   title: z.string(),
@@ -40,10 +41,10 @@ export const IntroTitle: React.FC<z.infer<typeof introTitleSchema>> = ({
   return (
     <AbsoluteFill style={{ backgroundColor, justifyContent: "center", alignItems: "center" }}>
         {backgroundImage && (
-            <AbsoluteFill style={{ zIndex: 0 }}>
-                <Img src={backgroundImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </AbsoluteFill>
-        )}
+        <AbsoluteFill style={{ zIndex: 0 }}>
+            <SmartImage src={backgroundImage} style={{ width: '100%', height: '100%' }} />
+        </AbsoluteFill>
+      )}
         <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", zIndex: 1 }}>
             {logoUrl && (
                 <Img src={logoUrl} style={{ width: 200, height: 200, marginBottom: 50, opacity: titleOpacity }} />

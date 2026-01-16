@@ -19,6 +19,7 @@ import { CaptionedVideo } from '../CaptionedVideo';
 import { PhoneMockup } from '../PhoneMockup';
 import { QRCodeOverlay } from '../../components/QRCodeOverlay';
 import { Subtitles } from '../../components/Subtitles';
+import { DynamicBackground } from '../../components/DynamicBackground';
 
 const sceneSchema = z.object({
   type: z.enum(['IntroTitle', 'KineticText', 'Comparison', 'KnowledgeCard', 'TechCode', 'LottieSticker', 'Audiogram', 'WordStream', 'SplitScreen', 'CaptionedVideo', 'PhoneMockup']),
@@ -56,6 +57,7 @@ export const MasterSequence: React.FC<z.infer<typeof masterSequenceSchema>> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: 'black' }}>
+      <DynamicBackground />
       <Series>
         {scenes.map((scene, index) => {
           let Component: any = null;

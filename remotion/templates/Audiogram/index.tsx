@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, Audio, interpolate, rand
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
+import { SmartImage } from '../../components/SmartImage';
 
 export const audiogramSchema = z.object({
   audioUrl: z.string(),
@@ -55,7 +56,7 @@ export const Audiogram: React.FC<z.infer<typeof audiogramSchema>> = ({
           transform: `scale(${1 + visualization * 0.05})`, // Pulse to beat
           marginBottom: 60
       }}>
-          <img src={coverImg} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <SmartImage src={coverImg} style={{ width: '100%', height: '100%' }} />
       </div>
 
       <h1 style={{ fontFamily: 'sans-serif', fontSize: 50, color: 'white', marginBottom: 60 }}>{title}</h1>

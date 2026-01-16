@@ -1,6 +1,7 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img } from "remotion";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
+import { SmartImage } from "../../components/SmartImage";
 
 export const comparisonSchema = z.object({
   leftTitle: z.string(),
@@ -38,7 +39,7 @@ export const Comparison: React.FC<z.infer<typeof comparisonSchema>> = ({
     <AbsoluteFill style={{ backgroundColor, flexDirection: "row", padding: 60 }}>
       {backgroundImage && (
         <AbsoluteFill style={{ zIndex: 0 }}>
-            <Img src={backgroundImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <SmartImage src={backgroundImage} style={{ width: '100%', height: '100%' }} />
         </AbsoluteFill>
       )}
       <AbsoluteFill style={{ flexDirection: "row", padding: 60, zIndex: 1 }}>

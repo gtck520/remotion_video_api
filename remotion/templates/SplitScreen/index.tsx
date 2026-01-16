@@ -1,7 +1,8 @@
 import React from 'react';
-import { AbsoluteFill, OffthreadVideo, Img } from 'remotion';
+import { AbsoluteFill, OffthreadVideo } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
+import { SmartImage } from '../../components/SmartImage';
 
 export const splitScreenSchema = z.object({
   layout: z.enum(['horizontal', 'vertical']),
@@ -24,10 +25,10 @@ export const SplitScreen: React.FC<z.infer<typeof splitScreenSchema>> = ({
   const flexDirection = isHorizontal ? 'row' : 'column';
 
   return (
-    <AbsoluteFill style={{ flexDirection, backgroundColor: 'black' }}>
+    <AbsoluteFill style={{ flexDirection }}>
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#333' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
             {/* Debug Info */}
             {/* <div style={{position: 'absolute', top: 0, left: 0, zIndex: 9999, color: 'red'}}>Title: {item.title}</div> */}
 
@@ -42,10 +43,9 @@ export const SplitScreen: React.FC<z.infer<typeof splitScreenSchema>> = ({
                 style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }} 
               />
             ) : (
-              <Img 
+              <SmartImage 
                 src={item.src} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'relative', zIndex: 1 }} 
-                onError={(e) => console.error('Image load failed', item.src)}
+                style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} 
               />
             )}
             
