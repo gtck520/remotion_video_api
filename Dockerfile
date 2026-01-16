@@ -13,9 +13,9 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lock ./
+COPY package.json ./
 
-# Install dependencies
+# Install dependencies (ignoring bun.lock to ensure fresh resolution)
 RUN bun install
 
 # Copy source code
