@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  remotion-server:
+    container_name: remotion-server
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3005}:3005"
+    environment:
+      - PORT=${PORT:-3005}
+    restart: always
+    # Mount .env if exists
+    # env_file:
+    #   - .env
