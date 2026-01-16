@@ -117,7 +117,7 @@ function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
 }
 
 async function main() {
-  await ensureBrowser();
+  // await ensureBrowser();
 
   const remotionBundleUrl = REMOTION_SERVE_URL
     ? REMOTION_SERVE_URL
