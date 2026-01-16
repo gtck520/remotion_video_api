@@ -263,21 +263,47 @@ export const setupMcp = (
   });
 
   // SSE Endpoint
-  let transport: SSEServerTransport;
+  // 使用简单的单例模式存储 transport
+  // 警告：这意味着服务器同时只能服务一个客户端连接
+  let transport: SSEServerTransport | undefined;
 
   app.post("/mcp/messages", async (req, res) => {
-    if (AUTH_REQUIRED) {
-        // 从 Query 或 Header 中获取 Token (MCP 协议通常不支持直接传 Header，这里假设通过 env 配置后，MCP 客户端连接时会带上)
-        // 注意：SSE 连接通常是 GET /mcp/sse，而 POST /mcp/messages 是后续通信。
-        // 对于 MCP，最简单的鉴权可能是在 SSE 连接时进行。
-        // 但这里我们简单点，先不拦截 POST，而是在 SSE 连接时拦截。
-    }
-
+    // 这里的 req.query.sessionId 是 MCP SDK 客户端通常会带上的参数
+    // 但如果客户端没带，我们需要一种机制来关联。
+    // 简单起见，我们暂时只支持单实例（这在多用户并发时会有问题，但对于个人 Agent 使用足够）
+    // 或者尝试从 URL query 中获取 sessionId
+    
+    // 更好的做法是：transport.handlePostMessage 内部处理了逻辑，我们只需要确保 transport 实例存在。
+    // 由于 SSEServerTransport 设计上是针对单个连接的，我们需要为每个连接创建一个实例。
+    // 但 SSE 协议中，POST 请求是独立的 HTTP 请求，如何关联到之前的 SSE 连接？
+    // ModelContextProtocol SDK 的 SSEServerTransport 实现中，handlePostMessage 会解析消息。
+    
+    // 修正逻辑：
+    // 我们目前是一个全局 transport 变量（这在多并发下是不对的，之前的代码就是这样）。
+    // 正确的做法是：每次 SSE 连接创建一个 transport，并且把它存储起来（比如用 sessionID）。
+    // 客户端发 POST 消息时，必须带上 sessionID，或者我们只有一个全局 transport（不支持并发）。
+    
+    // 鉴于目前代码结构，我们先回退到支持单连接的模式，但要修复 transport 未初始化的问题。
+    // 之前的报错 "stream is not readable" 可能是因为 transport 已经被之前的连接关闭了或者状态不对。
+    
+    // 另外，MCP 规范中，客户端连接 SSE 后，会收到一个 endpoint URL用于发 POST 消息。
+    // SDK 内部会自动处理这个 URL。
+    
     if (!transport) {
-      res.sendStatus(400);
+      console.error("Transport not initialized");
+      res.status(400).send("Transport not initialized");
       return;
     }
-    await transport.handlePostMessage(req, res);
+    
+    try {
+        await transport.handlePostMessage(req, res);
+    } catch (err) {
+        console.error("Error handling POST message:", err);
+        // 不要在已经发送响应后再次发送
+        if (!res.headersSent) {
+             res.status(500).send(String(err));
+        }
+    }
   });
 
   // 拦截 SSE 连接进行鉴权
@@ -299,7 +325,17 @@ export const setupMcp = (
         }
     }
 
+    console.log("New SSE connection established");
     transport = new SSEServerTransport("/mcp/messages", res);
     await server.connect(transport);
+    
+    // 监听连接关闭
+    req.on('close', () => {
+        console.log("SSE connection closed");
+        // 这里不要置空 transport，因为 POST 请求可能还在路上，或者客户端重连逻辑
+        // 但对于单例模式，关闭后确实应该清理
+        // transport = undefined; 
+    });
   });
 };
+
