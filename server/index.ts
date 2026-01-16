@@ -2,10 +2,8 @@ import express from "express";
 import { makeRenderQueue } from "./render-queue";
 import { bundle } from "@remotion/bundler";
 import path from "node:path";
-import { ensureBrowser } from "@remotion/renderer";
 import cors from "cors";
 import { mergeVideos } from "./merge";
-import { startCleanupJob } from "./cleanup";
 import { setupMcp } from "./mcp";
 
 const { PORT = 3005, REMOTION_SERVE_URL } = process.env;
@@ -32,6 +30,7 @@ function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
 
   // Host renders on /renders
   app.use("/renders", express.static(rendersDir));
+  app.use(express.static(path.resolve("public"))); // Serve public files like audio
 
   // Endpoint to create a new job
   app.post("/renders", async (req, res) => {

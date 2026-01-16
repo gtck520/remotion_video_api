@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 
@@ -17,7 +17,7 @@ export const TechCode: React.FC<z.infer<typeof techCodeSchema>> = ({
   backgroundColor,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  // const { fps } = useVideoConfig();
 
   // Typing effect logic
   const charsPerFrame = 2;

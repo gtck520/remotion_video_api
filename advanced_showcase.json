@@ -1,0 +1,48 @@
+{
+  "compositionId": "MasterSequence",
+  "inputProps": {
+    "scenes": [
+      {
+        "type": "CyberIntro",
+        "durationInFrames": 150,
+        "transition": "fade",
+        "props": {
+          "title": "REMOTION",
+          "subtitle": "UNLEASHED"
+        }
+      },
+      {
+        "type": "TechCode",
+        "durationInFrames": 150,
+        "transition": "slide",
+        "props": {
+          "code": "const future = async () => {\n  await remotion.render({\n    visuals: 'next-gen',\n    performance: 'max',\n    creativity: Infinity\n  });\n  return 'Mind Blown';\n};",
+          "language": "typescript",
+          "theme": "dark",
+          "backgroundColor": "#1e1e1e"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 120,
+        "transition": "wipe",
+        "props": {
+          "variant": "hero",
+          "title": "NO LIMITS",
+          "points": ["3D Transforms", "Physics Engines", "Audio Visualization"],
+          "backgroundColor": "#000000",
+          "textColor": "#00ffff"
+        }
+      },
+      {
+        "type": "CyberIntro",
+        "durationInFrames": 150,
+        "transition": "flip",
+        "props": {
+          "title": "CREATE",
+          "subtitle": "ANYTHING"
+        }
+      }
+    ]
+  }
+}

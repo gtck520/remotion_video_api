@@ -95,13 +95,16 @@ export const makeRenderQueue = ({
 
       const outputLocation = path.join(rendersDir, `${jobId}.mp4`);
 
+      console.log(`[${jobId}] Starting renderMedia...`);
       await renderMedia({
         cancelSignal,
         serveUrl,
         composition,
         inputProps: job.data.inputProps,
         codec: "h264",
+        verbose: true, // Enable verbose logging
         onProgress: (progress) => {
+          console.log(`[${jobId}] Progress: ${Math.round(progress.progress * 100)}%`);
           // Only update if job is still in progress (might be cancelled)
           const currentJob = jobs.get(jobId);
           if (currentJob && currentJob.status === "in-progress") {
@@ -115,6 +118,7 @@ export const makeRenderQueue = ({
         },
         outputLocation,
       });
+      console.log(`[${jobId}] renderMedia completed.`);
 
       jobs.set(jobId, {
         status: "completed",

@@ -1,9 +1,8 @@
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
-import { Lottie } from '@remotion/lottie';
+import { Lottie, LottieAnimationData } from '@remotion/lottie';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
-import { useLottie } from '@remotion/lottie';
 import { useEffect, useState } from 'react';
 
 export const lottieStickerSchema = z.object({
@@ -17,7 +16,7 @@ export const LottieSticker: React.FC<z.infer<typeof lottieStickerSchema>> = ({
   loop,
   backgroundColor,
 }) => {
-  const [animationData, setAnimationData] = useState<object | null>(null);
+  const [animationData, setAnimationData] = useState<LottieAnimationData | null>(null);
 
   useEffect(() => {
     fetch(lottieUrl)

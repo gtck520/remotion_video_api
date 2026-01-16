@@ -1,0 +1,67 @@
+{
+  "compositionId": "MasterSequence",
+  "inputProps": {
+    "scenes": [
+      {
+        "type": "IntroTitle",
+        "durationInFrames": 150,
+        "props": {
+          "title": "What is an LLM?",
+          "subtitle": "Large Language Models Explained",
+          "titleColor": "#ffffff",
+          "backgroundColor": "#1a1a1a"
+        }
+      },
+      {
+        "type": "KineticText",
+        "durationInFrames": 300,
+        "props": {
+          "texts": ["Large", "Language", "Model", "AI"],
+          "colors": ["#FF5733", "#33FF57", "#3357FF", "#F3FF33"],
+          "backgroundColor": "#000000"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 450,
+        "props": {
+          "title": "How is it trained?",
+          "points": ["Reads millions of books", "Scans the entire internet", "Learns grammar & patterns"],
+          "backgroundColor": "#2c3e50",
+          "textColor": "#ecf0f1"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 450,
+        "props": {
+          "title": "What can it do?",
+          "points": ["Write Code & Essays", "Translate Languages", "Answer Questions", "Summarize Text"],
+          "backgroundColor": "#e67e22",
+          "textColor": "#ffffff"
+        }
+      },
+      {
+        "type": "IntroTitle",
+        "durationInFrames": 450,
+        "props": {
+          "title": "The Future of AI",
+          "subtitle": "Subscribe for more!",
+          "titleColor": "#000000",
+          "backgroundColor": "#ffffff"
+        }
+      }
+    ],
+    "subtitles": [
+      { "startFrame": 0, "endFrame": 150, "text": "Have you ever wondered what powers ChatGPT? Let's talk about LLMs." },
+      { "startFrame": 150, "endFrame": 300, "text": "A Large Language Model, or LLM, is an AI designed to understand language." },
+      { "startFrame": 300, "endFrame": 450, "text": "Think of it as a super-advanced autocomplete system." },
+      { "startFrame": 450, "endFrame": 675, "text": "It learns by reading massive amounts of text—books, articles, and websites." },
+      { "startFrame": 675, "endFrame": 900, "text": "Through this, it learns grammar, facts, and how to reason about the world." },
+      { "startFrame": 900, "endFrame": 1125, "text": "It can write code, translate languages, summarize text, and even be creative." },
+      { "startFrame": 1125, "endFrame": 1350, "text": "But remember, it doesn't 'think' like us—it predicts the next likely word." },
+      { "startFrame": 1350, "endFrame": 1575, "text": "LLMs are changing how we work and create. It is just the beginning." },
+      { "startFrame": 1575, "endFrame": 1800, "text": "Thanks for watching! Subscribe to learn more about AI." }
+    ]
+  }
+}

@@ -1,6 +1,5 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, Audio, interpolate, random } from 'remotion';
-import { useAudioData, visualizeAudio } from '@remotion/media-utils';
+import React, { useMemo } from 'react';
+import { AbsoluteFill, useCurrentFrame, Audio } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 import { SmartImage } from '../../components/SmartImage';
@@ -21,7 +20,6 @@ export const Audiogram: React.FC<z.infer<typeof audiogramSchema>> = ({
   backgroundColor,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
   
   // NOTE: For demo stability, we use simulated data. 
   // In production with valid CORS audio, uncomment the next line:
@@ -34,13 +32,8 @@ export const Audiogram: React.FC<z.infer<typeof audiogramSchema>> = ({
         // Fallback simulation: random value smoothed with some beat logic
         return (Math.sin(frame * 0.2) * 0.5 + 0.5) * (0.5 + Math.random() * 0.5); 
     }
-    return visualizeAudio({
-        fps,
-        frame,
-        audioData,
-        numberOfSamples: 64, 
-    });
-  }, [frame, fps, audioData]);
+    return 0; // Placeholder for when audioData is enabled
+  }, [frame, audioData]);
 
   return (
     <AbsoluteFill style={{ backgroundColor, alignItems: 'center', justifyContent: 'center' }}>

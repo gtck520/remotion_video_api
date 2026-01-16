@@ -1,0 +1,64 @@
+{
+  "compositionId": "MasterSequence",
+  "inputProps": {
+    "scenes": [
+      {
+        "type": "IntroTitle",
+        "durationInFrames": 120,
+        "transition": "wipe",
+        "props": {
+          "title": "Remotion 2.0",
+          "subtitle": "Unlocking New Capabilities",
+          "titleColor": "#ffffff",
+          "backgroundColor": "transparent"
+        }
+      },
+      {
+        "type": "KineticText",
+        "durationInFrames": 150,
+        "transition": "slide",
+        "props": {
+          "texts": ["Smooth", "Transitions", "Are", "Here"],
+          "colors": ["#FF0055", "#00FF55", "#5500FF", "#FFFF00"],
+          "backgroundColor": "transparent"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 200,
+        "transition": "flip",
+        "props": {
+          "title": "New Animations",
+          "points": ["Staggered List Items", "Dynamic Backgrounds", "Smooth Scene Transitions"],
+          "backgroundColor": "transparent",
+          "textColor": "#ffffff"
+        }
+      },
+      {
+        "type": "DataViz",
+        "durationInFrames": 200,
+        "transition": "fade",
+        "props": {
+          "title": "Performance Growth",
+          "data": [
+              { "label": "Static", "value": 20, "color": "#e74c3c" },
+              { "label": "Animated", "value": 65, "color": "#f1c40f" },
+              { "label": "Remotion", "value": 100, "color": "#2ecc71" }
+          ],
+          "backgroundColor": "transparent",
+          "textColor": "#ffffff"
+        }
+      },
+      {
+        "type": "IntroTitle",
+        "durationInFrames": 120,
+        "props": {
+          "title": "The End",
+          "subtitle": "Created with Code",
+          "titleColor": "#000000",
+          "backgroundColor": "#ffffff"
+        }
+      }
+    ]
+  }
+}

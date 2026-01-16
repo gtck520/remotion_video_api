@@ -14,8 +14,7 @@ export const KineticText: React.FC<z.infer<typeof kineticTextSchema>> = ({
   colors,
   backgroundColor,
 }) => {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
 
   // Calculate duration per word
   const durationPerText = Math.floor(durationInFrames / texts.length);

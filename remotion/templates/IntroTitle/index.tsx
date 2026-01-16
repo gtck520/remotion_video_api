@@ -21,7 +21,7 @@ export const IntroTitle: React.FC<z.infer<typeof introTitleSchema>> = ({
   logoUrl,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps } = useVideoConfig();
 
   const entrance = spring({
     frame,

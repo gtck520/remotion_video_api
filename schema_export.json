@@ -1,0 +1,179 @@
+{
+  "description": "Full schema for generating videos using MasterSequence. Use 'compositionId': 'MasterSequence' and provide 'inputProps' matching this schema.",
+  "availableScenes": [
+    "IntroTitle",
+    "KineticText",
+    "Comparison",
+    "KnowledgeCard",
+    "TechCode",
+    "LottieSticker",
+    "Audiogram",
+    "WordStream",
+    "SplitScreen",
+    "CaptionedVideo",
+    "PhoneMockup",
+    "DataViz",
+    "CyberIntro",
+    "PhysicsStack",
+    "ParticleFlow",
+    "ProductShowcase3D",
+    "ThreeDText",
+    "SmartExplainer"
+  ],
+  "schema": {
+    "$ref": "#/definitions/MasterSequenceInput",
+    "definitions": {
+      "MasterSequenceInput": {
+        "type": "object",
+        "properties": {
+          "scenes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "IntroTitle",
+                    "KineticText",
+                    "Comparison",
+                    "KnowledgeCard",
+                    "TechCode",
+                    "LottieSticker",
+                    "Audiogram",
+                    "WordStream",
+                    "SplitScreen",
+                    "CaptionedVideo",
+                    "PhoneMockup",
+                    "DataViz",
+                    "CyberIntro",
+                    "PhysicsStack",
+                    "ParticleFlow",
+                    "ProductShowcase3D",
+                    "ThreeDText",
+                    "SmartExplainer"
+                  ]
+                },
+                "durationInFrames": {
+                  "type": "number"
+                },
+                "props": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "transition": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "slide",
+                    "fade",
+                    "wipe",
+                    "flip"
+                  ]
+                }
+              },
+              "required": [
+                "type",
+                "durationInFrames",
+                "props"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "globalOverlay": {
+            "type": "object",
+            "properties": {
+              "qrCode": {
+                "type": "string"
+              },
+              "watermark": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "subtitles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startFrame": {
+                  "type": "number"
+                },
+                "endFrame": {
+                  "type": "number"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "startFrame",
+                "endFrame",
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "scenes"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "examples": {
+    "PhysicsScene": {
+      "type": "PhysicsStack",
+      "durationInFrames": 300,
+      "props": {
+        "items": [
+          "React",
+          "Vue",
+          "Angular",
+          "Svelte",
+          "Solid"
+        ],
+        "itemColors": [
+          "#61dafb",
+          "#42b883",
+          "#dd1b16",
+          "#ff3e00",
+          "#2c4f7c"
+        ]
+      }
+    },
+    "ParticleScene": {
+      "type": "ParticleFlow",
+      "durationInFrames": 300,
+      "props": {
+        "primaryColor": "#00ffff",
+        "secondaryColor": "#ff00ff",
+        "speed": 2,
+        "particleCount": 300
+      }
+    },
+    "Product3DScene": {
+      "type": "ProductShowcase3D",
+      "durationInFrames": 300,
+      "props": {
+        "productColor": "#ffcc00",
+        "boxSize": 2.5,
+        "rotationSpeed": 1.5,
+        "environmentPreset": "studio"
+      }
+    },
+    "Text3DScene": {
+      "type": "ThreeDText",
+      "durationInFrames": 300,
+      "props": {
+        "text": "HELLO 3D",
+        "color": "#ff0055",
+        "size": 3,
+        "thickness": 1
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, OffthreadVideo, Img, useVideoConfig } from 'remotion';
+import { AbsoluteFill, OffthreadVideo, useVideoConfig } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 import { SmartImage } from '../../components/SmartImage';
@@ -17,7 +17,7 @@ export const PhoneMockup: React.FC<z.infer<typeof phoneMockupSchema>> = ({
   backgroundColor,
   frameColor = '#1a1a1a',
 }) => {
-  const { width, height } = useVideoConfig();
+  const { height } = useVideoConfig();
   
   // Phone dimensions (roughly iPhone aspect ratio 9:19.5)
   const phoneWidth = height * 0.45; // Scale relative to screen height

@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
 import { SmartImage } from "../../components/SmartImage";
@@ -25,7 +25,7 @@ export const Comparison: React.FC<z.infer<typeof comparisonSchema>> = ({
   backgroundImage,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps } = useVideoConfig();
 
   const entrance = spring({
       frame,

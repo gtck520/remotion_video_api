@@ -1,5 +1,4 @@
 import React from 'react';
-import { useCurrentFrame } from 'remotion';
 import QRCode from 'qrcode';
 
 export interface QRCodeOverlayProps {

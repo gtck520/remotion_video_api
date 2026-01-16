@@ -37,9 +37,9 @@ export const mergeVideos = async (
       outputPath,
     ];
 
-    const process = spawn(ffmpeg, args);
+    const process = spawn(ffmpeg as string, args);
 
-    process.on("close", (code) => {
+    process.on("close", (code: number) => {
       // Clean up list file
       if (fs.existsSync(listPath)) {
         fs.unlinkSync(listPath);
@@ -55,7 +55,7 @@ export const mergeVideos = async (
       }
     });
 
-    process.on("error", (err) => {
+    process.on("error", (err: Error) => {
       if (fs.existsSync(listPath)) {
         fs.unlinkSync(listPath);
       }

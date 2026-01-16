@@ -1,0 +1,54 @@
+{
+  "compositionId": "MasterSequence",
+  "inputProps": {
+    "scenes": [
+      {
+        "type": "IntroTitle",
+        "durationInFrames": 90,
+        "transition": "slide",
+        "props": {
+          "title": "Style Variants",
+          "subtitle": "Knowledge Card Redesigned",
+          "titleColor": "#ffffff",
+          "backgroundColor": "#000000"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 180,
+        "transition": "wipe",
+        "props": {
+          "variant": "classic",
+          "title": "Classic Layout",
+          "points": ["Standard List Format", "Good for dense information", "Supports side image"],
+          "backgroundColor": "#2c3e50",
+          "textColor": "#ecf0f1"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 180,
+        "transition": "flip",
+        "props": {
+          "variant": "cards",
+          "title": "Cards Grid Layout",
+          "points": ["Modern & Clean", "Highlighted Items", "Grid Structure", "Visual Hierarchy"],
+          "backgroundColor": "#8e44ad",
+          "textColor": "#ffffff"
+        }
+      },
+      {
+        "type": "KnowledgeCard",
+        "durationInFrames": 180,
+        "transition": "fade",
+        "props": {
+          "variant": "hero",
+          "title": "Hero Typography",
+          "points": ["Bold Statements", "Big Impact", "Cinematic Feel"],
+          "backgroundColor": "#c0392b",
+          "textColor": "#ffffff"
+        }
+      }
+    ]
+  }
+}
