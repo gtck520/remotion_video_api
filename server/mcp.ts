@@ -109,17 +109,17 @@ export const setupMcp = (
         },
         {
           name: "render_video",
-          description: "Render a video using a specific template and parameters",
+          description: "Render a video using a specific template and parameters. IMPORTANT: For 'MasterSequence' template, you MUST provide at least 5 different scenes in the 'scenes' array to ensure the video is engaging. Do not just use a single static image for the whole video. Always include 'subtitles' in the props if there is any spoken content or narration script.",
           inputSchema: {
             type: "object",
             properties: {
               templateId: {
                 type: "string",
-                description: "The ID of the template (composition) to render",
+                description: "The ID of the template (composition) to render. Recommended: 'MasterSequence' for full videos.",
               },
               inputProps: {
                 type: "object",
-                description: "Parameters for the template",
+                description: "Parameters for the template. For MasterSequence, this includes 'scenes' (array) and 'subtitles' (array).",
               },
             },
             required: ["templateId", "inputProps"],
