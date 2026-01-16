@@ -13,12 +13,8 @@ const { PORT = 3005, REMOTION_SERVE_URL } = process.env;
 function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
   const app = express();
   app.use(cors());
-  app.use(express.json());
 
   const rendersDir = path.resolve("renders");
-
-  // Start cleanup job
-  startCleanupJob(rendersDir);
 
   const queue = makeRenderQueue({
     port: Number(PORT),
@@ -27,8 +23,12 @@ function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
     concurrency: 1,
   });
 
-  // Setup MCP
+  // Setup MCP before express.json() to avoid body parsing conflicts with SSE transport
   setupMcp(app, queue, remotionBundleUrl, Number(PORT), rendersDir);
+
+  app.use(express.json());
+
+  // Start cleanup job
 
   // Host renders on /renders
   app.use("/renders", express.static(rendersDir));

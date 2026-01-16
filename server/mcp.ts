@@ -327,7 +327,15 @@ export const setupMcp = (
 
     console.log("New SSE connection established");
     transport = new SSEServerTransport("/mcp/messages", res);
-    await server.connect(transport);
+    
+    try {
+        await server.connect(transport);
+        console.log("MCP Server connected to transport");
+    } catch (error) {
+        console.error("Failed to connect MCP server to transport:", error);
+        res.end();
+        return;
+    }
     
     // 监听连接关闭
     req.on('close', () => {
