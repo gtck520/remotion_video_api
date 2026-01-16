@@ -6,6 +6,75 @@ import { getCompositions } from "@remotion/renderer";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { mergeVideos } from "./merge";
+import https from "node:https";
+import querystring from "node:querystring";
+
+const AUTH_REQUIRED = process.env.AUTH_REQUIRED === 'true';
+const VIP_API_HOST = process.env.VIP_API_HOST || '';
+const VIP_API_PATH = process.env.VIP_API_PATH || '';
+
+/** 
+ * 验证用户 VIP 状态 
+ * @param {string} token 用户提供的 Token 
+ * @returns {Promise<boolean>} 是否为 VIP 
+ */ 
+function verifyUser(token: string): Promise<boolean> { 
+    if (!AUTH_REQUIRED) return Promise.resolve(true); 
+    if (!token) return Promise.resolve(false); 
+
+    return new Promise((resolve) => { 
+        const postData = querystring.stringify({ 
+            'token': token 
+        }); 
+
+        const options = { 
+            hostname: VIP_API_HOST, 
+            port: 443, 
+            path: VIP_API_PATH, 
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded', 
+                'Content-Length': postData.length 
+            } 
+        }; 
+
+        const req = https.request(options, (res) => { 
+            let data = ''; 
+            res.on('data', (chunk) => data += chunk); 
+            res.on('end', () => { 
+                try { 
+                    const json = JSON.parse(data); 
+                    // 逻辑：code 为 1 且 data.is_vip 为 true 
+                    if (json.code === 1 && json.data && json.data.is_vip === true) { 
+                        console.log(`[AUTH] Token ${token.substring(0, 6)}... 验证成功 (VIP)`); 
+                        resolve(true); 
+                    } else { 
+                        console.log(`[AUTH] Token ${token.substring(0, 6)}... 验证失败 (非VIP或无效)`); 
+                        resolve(false); 
+                    } 
+                } catch (e: any) { 
+                    console.error('[AUTH] API 响应解析失败:', e.message); 
+                    resolve(false); 
+                } 
+            }); 
+        }); 
+
+        req.on('error', (e) => { 
+            console.error('[AUTH] 请求验证接口失败:', e.message); 
+            resolve(false); 
+        }); 
+
+        // 设置超时 
+        req.setTimeout(5000, () => { 
+            req.destroy(); 
+            console.error('[AUTH] 验证请求超时'); 
+            resolve(false); 
+        }); 
+
+        req.write(postData); 
+        req.end(); 
+    }); 
+}
 
 export const setupMcp = (
   app: express.Express,
@@ -196,16 +265,41 @@ export const setupMcp = (
   // SSE Endpoint
   let transport: SSEServerTransport;
 
-  app.get("/mcp/sse", async (req, res) => {
-    transport = new SSEServerTransport("/mcp/messages", res);
-    await server.connect(transport);
-  });
-
   app.post("/mcp/messages", async (req, res) => {
+    if (AUTH_REQUIRED) {
+        // 从 Query 或 Header 中获取 Token (MCP 协议通常不支持直接传 Header，这里假设通过 env 配置后，MCP 客户端连接时会带上)
+        // 注意：SSE 连接通常是 GET /mcp/sse，而 POST /mcp/messages 是后续通信。
+        // 对于 MCP，最简单的鉴权可能是在 SSE 连接时进行。
+        // 但这里我们简单点，先不拦截 POST，而是在 SSE 连接时拦截。
+    }
+
     if (!transport) {
       res.sendStatus(400);
       return;
     }
     await transport.handlePostMessage(req, res);
+  });
+
+  // 拦截 SSE 连接进行鉴权
+  app.get("/mcp/sse", async (req, res) => {
+    if (AUTH_REQUIRED) {
+        const token = req.query.token as string || req.headers['x-mcp-token'] as string || req.headers['authorization']?.replace('Bearer ', '');
+        
+        if (!token) {
+            console.log('[AUTH] 拒绝连接：缺少 Token');
+            res.status(401).send("Unauthorized: Missing Token");
+            return;
+        }
+
+        const isVip = await verifyUser(token);
+        if (!isVip) {
+             console.log('[AUTH] 拒绝连接：无效 Token 或非 VIP');
+             res.status(403).send("Forbidden: Invalid Token or not VIP");
+             return;
+        }
+    }
+
+    transport = new SSEServerTransport("/mcp/messages", res);
+    await server.connect(transport);
   });
 };
