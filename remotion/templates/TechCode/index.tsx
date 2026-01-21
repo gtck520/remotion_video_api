@@ -76,7 +76,7 @@ export const TechCode: React.FC<z.infer<typeof techCodeSchema>> = ({
         <div style={{
           flex: 1,
           padding: 24,
-          fontFamily: 'Fira Code, monospace',
+          fontFamily: '"Fira Code", "Noto Sans Mono CJK SC", monospace',
           fontSize: 24,
           whiteSpace: 'pre-wrap',
           overflow: 'hidden'

@@ -1,0 +1,37 @@
+FROM oven/bun:1-debian
+
+# 1. Optimize: Use Alibaba Cloud mirror for apt to speed up installation
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources || sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+
+# Install system dependencies for Remotion (Chromium + FFmpeg)
+# Use --no-install-recommends to reduce image size
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    ffmpeg \
+    fonts-noto-color-emoji \
+    fonts-noto-cjk \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Set working directory
+WORKDIR /app
+
+# Tell Puppeteer to skip downloading Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV FFMPEG_BIN=/usr/bin/ffmpeg
+
+# 2. Copy dependency files
+COPY package.json bun.lock* ./
+
+# 3. Install dependencies
+# Create bunfig.toml to use registry mirror if needed (though optional with bun)
+RUN echo '[install]\nregistry = "https://registry.npmmirror.com/"' > bunfig.toml \
+    && bun install
+
+# Ensure logs and renders directories exist (common setup)
+RUN mkdir -p logs renders

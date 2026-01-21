@@ -33,8 +33,19 @@ export const SplitScreen: React.FC<z.infer<typeof splitScreenSchema>> = ({
             {/* <div style={{position: 'absolute', top: 0, left: 0, zIndex: 9999, color: 'red'}}>Title: {item.title}</div> */}
 
             {/* Fallback/Background in case image fails */}
-            <AbsoluteFill style={{ backgroundColor: '#2a2a2a', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: '#444', fontSize: 40, fontWeight: 'bold' }}>{item.type.toUpperCase()}</span>
+            <AbsoluteFill style={{ 
+                background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+            }}>
+                {/* Abstract pattern */}
+                <div style={{
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0.1,
+                    backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                    backgroundSize: '40px 40px'
+                }} />
             </AbsoluteFill>
 
             {item.type === 'video' ? (

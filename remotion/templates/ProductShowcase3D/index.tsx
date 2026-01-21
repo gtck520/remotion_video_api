@@ -11,6 +11,8 @@ export const productShowcase3DSchema = z.object({
   boxSize: z.number().min(1).max(5).default(2),
   rotationSpeed: z.number().min(0).max(5).default(1),
   environmentPreset: z.enum(['sunset', 'dawn', 'night', 'warehouse', 'forest', 'apartment', 'studio', 'city', 'park', 'lobby']).default('city'),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
 });
 
 const ProductBox: React.FC<{ color: string; size: number; speed: number }> = ({ color, size, speed }) => {
@@ -39,6 +41,8 @@ export const ProductShowcase3D: React.FC<z.infer<typeof productShowcase3DSchema>
   boxSize,
   rotationSpeed,
   environmentPreset,
+  title,
+  subtitle,
 }) => {
   const { width, height } = useVideoConfig();
 
@@ -50,14 +54,52 @@ export const ProductShowcase3D: React.FC<z.infer<typeof productShowcase3DSchema>
         style={{ backgroundColor: '#111' }}
         camera={{ position: [0, 0, 10], fov: 50 }}
       >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
+        <ambientLight intensity={0.8} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} />
         
         <ProductBox color={productColor} size={boxSize} speed={rotationSpeed} />
         
-        <Environment preset={environmentPreset as any} />
+        {/* Use a valid preset or fallback to ambient light only if network fails */}
+        {/* <Environment preset={environmentPreset as any} /> */}
         <ContactShadows position={[0, -3.5, 0]} opacity={0.5} scale={20} blur={2} far={4.5} />
       </ThreeCanvas>
+      
+      {/* Title Overlay */}
+      {(title || subtitle) && (
+        <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <div style={{
+                textAlign: 'center',
+                zIndex: 10,
+                marginTop: 200 // Push text down or up
+            }}>
+                {title && (
+                    <h1 style={{
+                        fontSize: 100,
+                        color: 'white',
+                        marginBottom: 20,
+                        textShadow: '0 4px 20px rgba(0,0,0,0.8)',
+                        fontFamily: 'sans-serif',
+                        fontWeight: 900,
+                        letterSpacing: -2
+                    }}>
+                        {title}
+                    </h1>
+                )}
+                {subtitle && (
+                    <h2 style={{
+                        fontSize: 40,
+                        color: '#aaa',
+                        fontWeight: 'normal',
+                        textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                        fontFamily: 'sans-serif',
+                        letterSpacing: 1
+                    }}>
+                        {subtitle}
+                    </h2>
+                )}
+            </div>
+        </AbsoluteFill>
+      )}
     </AbsoluteFill>
   );
 };

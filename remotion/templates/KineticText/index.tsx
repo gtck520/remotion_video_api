@@ -4,30 +4,33 @@ import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 
 export const kineticTextSchema = z.object({
-  texts: z.array(z.string()),
-  colors: z.array(zColor()),
-  backgroundColor: zColor(),
+  texts: z.array(z.string()).optional(),
+  text: z.string().optional(),
+  colors: z.array(zColor()).optional(),
+  backgroundColor: zColor().optional(),
 });
 
 export const KineticText: React.FC<z.infer<typeof kineticTextSchema>> = ({
   texts,
-  colors,
-  backgroundColor,
+  text,
+  colors = ['#ffffff', '#fbbf24', '#34d399', '#60a5fa', '#f87171'],
+  backgroundColor = 'black',
 }) => {
   const { durationInFrames } = useVideoConfig();
+  const actualTexts = texts || (text ? text.split(' ') : ['HELLO', 'WORLD']);
 
   // Calculate duration per word
-  const durationPerText = Math.floor(durationInFrames / texts.length);
+  const durationPerText = Math.floor(durationInFrames / actualTexts.length);
 
   return (
     <AbsoluteFill style={{ backgroundColor, alignItems: 'center', justifyContent: 'center' }}>
-      {texts.map((text, index) => {
+      {actualTexts.map((textItem, index) => {
         const from = index * durationPerText;
         const color = colors[index % colors.length];
 
         return (
           <Sequence key={index} from={from} durationInFrames={durationPerText} layout="none">
-             <Word text={text} color={color} />
+             <Word text={textItem} color={color} />
           </Sequence>
         );
       })}
@@ -62,7 +65,7 @@ const Word: React.FC<{ text: string; color: string }> = ({ text, color }) => {
       height: '100%',
     }}>
       <h1 style={{
-        fontFamily: 'Impact, sans-serif',
+        fontFamily: 'Impact, "Noto Sans CJK SC", "WenQuanYi Zen Hei", sans-serif',
         fontSize: 200,
         color: color,
         transform: `scale(${scale}) rotate(${rotate}deg)`,

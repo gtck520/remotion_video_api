@@ -18,7 +18,7 @@ export const wordStreamSchema = z.object({
 export const WordStream: React.FC<z.infer<typeof wordStreamSchema>> = ({
   words,
   audioUrl,
-  fontFamily = 'Impact, sans-serif',
+  fontFamily = 'Impact, "Noto Sans CJK SC", "WenQuanYi Zen Hei", sans-serif',
   highlightColor,
   textColor,
 }) => {

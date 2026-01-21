@@ -8,6 +8,7 @@ coverage
 .cache
 packages/example/out
 .env
+.env.*
 .vscode/taskmarks.json
 .turbo
 .vercel
@@ -41,3 +42,7 @@ renders/
 temp/
 generate-*.ts
 test-*.ts
+server.log
+logs/
+.remotion_cache
+public/

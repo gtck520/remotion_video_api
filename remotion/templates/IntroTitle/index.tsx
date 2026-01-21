@@ -15,8 +15,8 @@ export const introTitleSchema = z.object({
 export const IntroTitle: React.FC<z.infer<typeof introTitleSchema>> = ({
   title,
   subtitle,
-  titleColor,
-  backgroundColor,
+  titleColor = 'white',
+  backgroundColor = 'black',
   backgroundImage,
   logoUrl,
 }) => {

@@ -1,16 +1,24 @@
-version: '3.8'
-
 services:
   remotion-server:
     container_name: remotion-server
     build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_TAG=${BASE_IMAGE_TAG:-latest}
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - no_proxy=${no_proxy}
     ports:
       - "${PORT:-3005}:3005"
     environment:
-      - PORT=${PORT:-3005}
+      # Force internal port to 3005 to match the port mapping target, 
+      # regardless of what PORT is set to in the .env file (which controls the host port).
+      - PORT=3005
+    env_file:
+      - ${ENV_FILE:-.env.prod}
+    volumes:
+      - /www/remotion/logs:/app/logs
+      - /www/remotion/renders:/app/renders
+      - /www/remotion/.remotion_cache:/app/.remotion_cache
     restart: always
-    # Mount .env if exists
-    # env_file:
-    #   - .env

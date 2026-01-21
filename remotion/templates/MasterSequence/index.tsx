@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, Audio, useVideoConfig, Sequence, Loop } from 'remotion';
 import { z } from 'zod';
 import { IntroTitle } from '../IntroTitle';
 import { KineticText } from '../KineticText';
@@ -35,9 +35,11 @@ import { DynamicBackground } from '../../components/DynamicBackground';
 const sceneSchema = z.object({
   type: z.enum(['IntroTitle', 'KineticText', 'Comparison', 'KnowledgeCard', 'TechCode', 'LottieSticker', 'Audiogram', 'WordStream', 'SplitScreen', 'CaptionedVideo', 'PhoneMockup', 'DataViz', 'CyberIntro', 'PhysicsStack', 'ParticleFlow', 'ProductShowcase3D', 'ThreeDText', 'SmartExplainer']),
   durationInFrames: z.number(),
-  props: z.record(z.any()),
+  // Allow flat props (direct properties) or nested props (scene.props)
+  // This handles both { type: "SmartExplainer", title: "..." } and { type: "SmartExplainer", props: { title: "..." } }
+  props: z.record(z.any()).optional(), 
   transition: z.enum(['none', 'slide', 'fade', 'wipe', 'flip']).optional(),
-});
+}).passthrough(); // Allow extra properties for flat structure
 
 const subtitleItemSchema = z.object({
   startFrame: z.number(),
@@ -52,14 +54,29 @@ export const masterSequenceSchema = z.object({
     watermark: z.string().optional()
   }).optional(),
   subtitles: z.array(subtitleItemSchema).optional(),
+  subtitleSettings: z.object({
+      variant: z.enum(['default', 'clean', 'neon', 'comic']).optional(),
+      style: z.record(z.any()).optional(), // Custom container style
+      textStyle: z.record(z.any()).optional() // Custom text style
+  }).optional(),
+  bgMusic: z.object({
+      src: z.string().optional(),
+      style: z.string().optional(), // Used for server-side selection
+      volume: z.number().optional(), // Default 0.5
+      loop: z.boolean().optional(), // Default true
+      durationInFrames: z.number().optional() // Provided by server
+  }).optional(),
 });
 
 export const MasterSequence: React.FC<z.infer<typeof masterSequenceSchema>> = ({
   scenes,
   globalOverlay,
-  subtitles
+  subtitles,
+  subtitleSettings,
+  bgMusic
 }) => {
   const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
   
   // Debug logging
   if (frame % 30 === 0) {
@@ -69,11 +86,41 @@ export const MasterSequence: React.FC<z.infer<typeof masterSequenceSchema>> = ({
   return (
     <AbsoluteFill style={{ backgroundColor: 'black' }}>
       <DynamicBackground />
+      {bgMusic && bgMusic.src && (
+          <Sequence from={0}>
+             {(() => {
+                 const volume = bgMusic.volume ?? 0.5;
+                 const shouldLoop = bgMusic.loop ?? true;
+                 
+                 // If music is shorter than video and loop is true
+                 if (shouldLoop && bgMusic.durationInFrames && bgMusic.durationInFrames < durationInFrames) {
+                     return (
+                         <Loop durationInFrames={bgMusic.durationInFrames}>
+                             <Audio src={bgMusic.src} volume={volume} />
+                         </Loop>
+                     );
+                 }
+                 
+                 // Default: Play once (will be truncated by Sequence/Video end automatically)
+                 return <Audio src={bgMusic.src} volume={volume} />;
+             })()}
+          </Sequence>
+      )}
       <TransitionSeries>
         {scenes.map((scene, index) => {
           let Component: any = null;
+          const sceneType = scene.type || (scene as any).component;
           
-          switch (scene.type) {
+          // Normalize props: Merge top-level properties (like text, imageQuery) with the props object
+          // This allows fields like "text" to be passed at the scene root level and still be received by the component
+          const { type, component, durationInFrames, transition, props, ...rest } = scene as any;
+          const componentProps = { ...rest, ...(props || {}) };
+          
+          if (typeof durationInFrames !== 'number') {
+            console.error(`[MasterSequence] Scene ${index} (${type}) is missing durationInFrames!`, scene);
+          }
+
+          switch (sceneType) {
             case 'IntroTitle': Component = IntroTitle; break;
             case 'KineticText': Component = KineticText; break;
             case 'Comparison': Component = Comparison; break;
@@ -95,62 +142,81 @@ export const MasterSequence: React.FC<z.infer<typeof masterSequenceSchema>> = ({
           }
 
           if (!Component) {
-              console.warn(`Scene type ${scene.type} not found!`);
+              console.warn(`[MasterSequence] Scene ${index}: Type '${sceneType}' not found! Full scene object:`, JSON.stringify(scene));
               Component = () => (
                   <AbsoluteFill style={{ backgroundColor: 'red', alignItems: 'center', justifyContent: 'center' }}>
-                      <h1 style={{ color: 'white' }}>Missing Component: {scene.type}</h1>
+                      <h1 style={{ color: 'white' }}>Missing Component: {sceneType}</h1>
+                      <p style={{ color: 'white' }}>Index: {index}</p>
                   </AbsoluteFill>
               );
           }
 
-          console.log(`Rendering Scene ${index}: ${scene.type}`);
-
           const sequence = (
             <TransitionSeries.Sequence 
               key={index} 
-              durationInFrames={scene.durationInFrames}
+              durationInFrames={durationInFrames}
             >
-              <Component {...scene.props} />
+              <AbsoluteFill>
+                  <Component {...componentProps} />
+              </AbsoluteFill>
+              
+              {/* Voiceover Layer - Rendered in parallel AbsoluteFill to ensure it's not blocked */}
+              {componentProps.audio && (
+                  <AbsoluteFill>
+                      <Audio 
+                        src={componentProps.audio} 
+                        volume={1.0}
+                        onError={(e) => console.error(`[MasterSequence] Audio load failed for scene ${index}:`, e)}
+                      />
+                  </AbsoluteFill>
+              )}
             </TransitionSeries.Sequence>
           );
 
-          if (index === scenes.length - 1) {
-             return sequence;
+          // Handle Transitions
+          if (index < scenes.length - 1 && transition && transition !== 'none') {
+             let presentation = null;
+             switch (transition) {
+                 case 'slide': presentation = slide(); break;
+                 case 'fade': presentation = fade(); break;
+                 case 'wipe': presentation = wipe(); break;
+                 case 'flip': presentation = flip(); break;
+             }
+             
+             if (presentation) {
+                 return (
+                    <React.Fragment key={index}>
+                        {sequence}
+                        <TransitionSeries.Transition
+                            presentation={presentation as any}
+                            timing={linearTiming({ durationInFrames: 30 })}
+                        />
+                    </React.Fragment>
+                 );
+             }
           }
-
-          // Determine transition
-          let presentation = null;
-          switch (scene.transition) {
-              case 'slide': presentation = slide(); break;
-              case 'fade': presentation = fade(); break;
-              case 'wipe': presentation = wipe(); break;
-              case 'flip': presentation = flip(); break;
-              default: presentation = null; // Hard cut
-          }
-
-          if (presentation) {
-              return (
-                  <React.Fragment key={index}>
-                      {sequence}
-                      <TransitionSeries.Transition
-                          presentation={presentation as any}
-                          timing={linearTiming({ durationInFrames: 30 })}
-                      />
-                  </React.Fragment>
-              );
-          } else {
-              return sequence;
-          }
+          
+          return sequence;
         })}
       </TransitionSeries>
-      
+
       {/* Global Overlays */}
-      {globalOverlay?.qrCode && (
-        <QRCodeOverlay text={globalOverlay.qrCode} />
+      {globalOverlay?.qrCode && <QRCodeOverlay url={globalOverlay.qrCode} />}
+      {globalOverlay?.watermark && (
+        <AbsoluteFill style={{ alignItems: 'flex-end', justifyContent: 'flex-start', padding: 40, pointerEvents: 'none' }}>
+           <h2 style={{ color: 'rgba(255,255,255,0.5)', fontSize: 30, fontFamily: 'sans-serif' }}>{globalOverlay.watermark}</h2>
+        </AbsoluteFill>
       )}
 
-      {/* Global Subtitles */}
-      {subtitles && <Subtitles subtitles={subtitles} />}
+      {/* Subtitles Layer */}
+      {subtitles && (
+        <Subtitles 
+            subtitles={subtitles} 
+            variant={subtitleSettings?.variant}
+            style={subtitleSettings?.style}
+            textStyle={subtitleSettings?.textStyle}
+        />
+      )}
     </AbsoluteFill>
   );
 };

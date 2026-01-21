@@ -25,12 +25,12 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
   subtitle,
   points,
   image,
-  accentColor,
+  accentColor = '#3b82f6',
   theme = 'Dark',
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const colors = themes[theme];
+  const colors = themes[theme] || themes.Dark; // Safe fallback
 
   const entranceSpring = spring({
     frame,
@@ -206,16 +206,48 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
                 <div style={{
                   width: '100%',
                   height: '60%',
-                  backgroundColor: '#334155',
+                  background: `linear-gradient(135deg, ${colors.secondary}20, ${accentColor}20)`,
                   borderRadius: 24,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#64748b',
-                  fontSize: 30,
-                  opacity: 0.5
+                  opacity: interpolate(frame, [20, 50], [0, 1]),
+                  transform: `scale(${interpolate(spring({ frame: frame - 20, fps }), [0, 1], [0.9, 1])})`,
+                  border: `2px solid ${accentColor}40`,
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  Image Placeholder
+                  {/* Decorative Abstract Shapes */}
+                  <div style={{
+                      position: 'absolute',
+                      top: '-20%',
+                      left: '-20%',
+                      width: '60%',
+                      height: '60%',
+                      background: accentColor,
+                      filter: 'blur(80px)',
+                      opacity: 0.2
+                  }} />
+                  <div style={{
+                      position: 'absolute',
+                      bottom: '-20%',
+                      right: '-20%',
+                      width: '60%',
+                      height: '60%',
+                      background: colors.text,
+                      filter: 'blur(80px)',
+                      opacity: 0.1
+                  }} />
+                  
+                  {/* Text Effect Hint */}
+                   <h3 style={{
+                       fontSize: 40,
+                       color: accentColor,
+                       opacity: 0.8,
+                       zIndex: 1
+                   }}>
+                       {title}
+                   </h3>
                 </div>
               )}
             </div>

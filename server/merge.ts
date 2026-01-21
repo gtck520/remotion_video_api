@@ -1,8 +1,10 @@
-import ffmpeg from "ffmpeg-static";
+// import ffmpeg from "ffmpeg-static";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+
+const ffmpeg = process.env.FFMPEG_BIN || "ffmpeg";
 
 export const mergeVideos = async (
   videoPaths: string[],
