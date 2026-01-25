@@ -1,11 +1,13 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, spring } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, spring, Img, OffthreadVideo, Loop } from 'remotion';
 import { z } from 'zod';
 import { GlitchText } from '../../components/Effects/GlitchText';
 
 export const cyberIntroSchema = z.object({
   title: z.string(),
   subtitle: z.string(),
+  src: z.string().optional(),
+  mediaType: z.enum(['image', 'video']).optional(),
 });
 
 const Scanline: React.FC = () => {
@@ -63,9 +65,9 @@ const GridBackground: React.FC = () => {
     )
 }
 
-export const CyberIntro: React.FC<z.infer<typeof cyberIntroSchema>> = ({ title, subtitle }) => {
+export const CyberIntro: React.FC<z.infer<typeof cyberIntroSchema>> = ({ title, subtitle, src, mediaType }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   
   const titleProgress = spring({
       frame,
@@ -77,6 +79,18 @@ export const CyberIntro: React.FC<z.infer<typeof cyberIntroSchema>> = ({ title, 
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050505', color: 'white', overflow: 'hidden' }}>
+      {src && (
+         <AbsoluteFill style={{ zIndex: 0 }}>
+             {mediaType === 'video' ? (
+                 <Loop durationInFrames={durationInFrames}>
+                     <OffthreadVideo src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+                 </Loop>
+             ) : (
+                 <Img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+             )}
+             <AbsoluteFill style={{ backgroundColor: '#050505', opacity: 0.7 }} />
+         </AbsoluteFill>
+      )}
       <GridBackground />
       <Scanline />
       

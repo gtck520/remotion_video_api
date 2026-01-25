@@ -12,7 +12,7 @@ interface GeneratedImage {
 }
 
 export const generateAiImage = async (options: ImageGenerationOptions): Promise<GeneratedImage | null> => {
-    const cozeToken = process.env.COZE_API_TOKEN;
+    const autoToken = process.env.AUTO_API_TOKEN || process.env.COZE_API_TOKEN;
     const cozeWorkflowId = process.env.COZE_WORKFLOW_ID;
     const zhipuApiKey = process.env.ZHIPU_API_KEY;
     
@@ -30,16 +30,16 @@ export const generateAiImage = async (options: ImageGenerationOptions): Promise<
 
     // 2. Explicit request for Coze
     if (requestedModel === 'coze') {
-        if (cozeToken && cozeWorkflowId) {
+        if (autoToken && cozeWorkflowId) {
             return generateCozeImage(options);
         } else {
-            console.warn("[ImageGenerator] Coze requested but COZE_API_TOKEN or COZE_WORKFLOW_ID is not set.");
+            console.warn("[ImageGenerator] Coze requested but AUTO_API_TOKEN or COZE_WORKFLOW_ID is not set.");
             return null;
         }
     }
 
     // 3. Default: Try Coze first (User Preference)
-    if (cozeToken && cozeWorkflowId) {
+    if (autoToken && cozeWorkflowId) {
         return generateCozeImage(options);
     }
 
@@ -54,12 +54,12 @@ export const generateAiImage = async (options: ImageGenerationOptions): Promise<
 };
 
 async function generateCozeImage(options: ImageGenerationOptions): Promise<GeneratedImage | null> {
-    const token = process.env.COZE_API_TOKEN;
+    const token = process.env.AUTO_API_TOKEN || process.env.COZE_API_TOKEN;
     const userToken = process.env.COZE_USER_TOKEN;
     const workflowId = process.env.COZE_WORKFLOW_ID;
 
     if (!token || !workflowId) {
-        console.warn("[ImageGenerator] COZE_API_TOKEN or COZE_WORKFLOW_ID is not set.");
+        console.warn("[ImageGenerator] AUTO_API_TOKEN (or COZE_API_TOKEN) or COZE_WORKFLOW_ID is not set.");
         return null;
     }
 
@@ -70,7 +70,7 @@ async function generateCozeImage(options: ImageGenerationOptions): Promise<Gener
 
         const body = {
             token: token,
-            user_token: userToken || token, // Ensure user_token is sent, falling back to token if not explicitly set
+            user_token: userToken, // Now using AUTO_API_TOKEN as gateway token, and COZE_USER_TOKEN as user context
             workflow_id: workflowId,
             parameters: {
                 style: "横屏", // Default to landscape for video generation

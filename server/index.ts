@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
+import util from "node:util";
 
 // Load environment variables
 // Priority: .env.prod > .env > .env.dev (for local development)
@@ -77,6 +79,8 @@ import { ensureLocalBrowser } from "./browser";
 import fs from "node:fs";
 import util from "node:util";
 import { startCleanupJob } from "./cleanup";
+import { getProxyAgent } from "./proxy";
+import fetch from "node-fetch";
 
 const { PORT = 3005, REMOTION_SERVE_URL, AUTH_REQUIRED = "false" } = process.env;
 
@@ -154,6 +158,12 @@ function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
   const app = express();
   app.use(cors());
 
+  // DEBUG: Log all incoming requests to debug connection issues
+  app.use((req, res, next) => {
+    console.log(`[Server] Request: ${req.method} ${req.url} from ${req.ip}`);
+    next();
+  });
+
   const rendersDir = path.resolve("renders");
 
   const queue = makeRenderQueue({
@@ -171,6 +181,48 @@ function setupApp({ remotionBundleUrl }: { remotionBundleUrl: string }) {
   // Host renders on /renders
   app.use("/renders", express.static(rendersDir));
   app.use(express.static(path.resolve("public"))); // Serve public files like audio
+
+  // Proxy endpoint for Remotion offthread video or general media
+  app.get("/proxy", async (req, res) => {
+    const { src } = req.query;
+    if (!src || typeof src !== 'string') {
+        res.status(400).send("Missing src query parameter");
+        return;
+    }
+    
+    try {
+        const agent = getProxyAgent(src);
+        console.log(`[Proxy] Proxying request to: ${src}`);
+        
+        const response = await fetch(src, { 
+            agent,
+            headers: {
+                'User-Agent': 'Remotion-Proxy/1.0'
+            }
+        });
+
+        if (!response.ok) {
+            console.error(`[Proxy] Upstream error: ${response.status} ${response.statusText}`);
+            res.status(response.status).send(response.statusText);
+            return;
+        }
+
+        // Forward headers
+        res.status(response.status);
+        res.setHeader('Access-Control-Allow-Origin', '*'); 
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType) res.setHeader('Content-Type', contentType);
+        
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) res.setHeader('Content-Length', contentLength);
+
+        response.body.pipe(res);
+    } catch (e) {
+        console.error(`[Proxy] Failed to proxy ${src}:`, e);
+        res.status(500).send(String(e));
+    }
+  });
 
   // Start cleanup job
   startCleanupJob([rendersDir, path.resolve("public/audio")]);

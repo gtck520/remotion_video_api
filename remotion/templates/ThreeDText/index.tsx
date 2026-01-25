@@ -31,7 +31,7 @@ const AnimatedText: React.FC<{ text: string; color: string; size: number; thickn
       <Center>
         <Text
           ref={meshRef}
-          font={staticFile("fonts/chinese.ttc")}
+          font={staticFile("fonts/SourceHanSansSC-Bold.otf")}
           fontSize={size}
           color={color}
           anchorX="center"

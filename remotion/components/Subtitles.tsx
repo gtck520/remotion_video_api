@@ -17,7 +17,7 @@ export interface SubtitlesProps {
 const VARIANTS: Record<string, React.CSSProperties> = {
   default: {
     fontSize: 40,
-    fontFamily: 'sans-serif',
+    fontFamily: '"Source Han Sans SC", "Source Han Serif SC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "Hiragino Sans GB", "Heiti SC", "Inter", "system-ui", "sans-serif"',
     fontWeight: 'bold',
     color: 'white',
     textShadow: '0 2px 4px rgba(0,0,0,0.8)',
@@ -25,24 +25,27 @@ const VARIANTS: Record<string, React.CSSProperties> = {
     padding: '15px 40px',
     borderRadius: 30,
     boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+    lineHeight: 1.5,
   },
   clean: {
     fontSize: 42,
-    fontFamily: 'sans-serif',
+    fontFamily: '"Source Han Sans SC", "Source Han Serif SC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "Hiragino Sans GB", "Heiti SC", "Inter", "system-ui", "sans-serif"',
     fontWeight: 'bold',
     color: 'white',
     textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.5)',
     backgroundColor: 'transparent',
     padding: '10px',
+    lineHeight: 1.5,
   },
   neon: {
     fontSize: 45,
-    fontFamily: 'sans-serif',
+    fontFamily: '"Source Han Sans SC", "Source Han Serif SC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "Hiragino Sans GB", "Heiti SC", "Inter", "system-ui", "sans-serif"',
     fontWeight: 'bold',
     color: '#fff',
     textShadow: '0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de',
     backgroundColor: 'transparent',
     padding: '10px',
+    lineHeight: 1.5,
   },
   comic: {
     fontSize: 45,
@@ -53,6 +56,7 @@ const VARIANTS: Record<string, React.CSSProperties> = {
     textShadow: '3px 3px 0px #000',
     backgroundColor: 'transparent',
     padding: '10px',
+    lineHeight: 1.5,
   }
 };
 
@@ -78,14 +82,17 @@ export const Subtitles: React.FC<SubtitlesProps> = ({ subtitles, style, textStyl
       textAlign: 'center',
       padding: '0 40px',
       zIndex: 1000, // Ensure subtitles are always on top
+      pointerEvents: 'none', // Allow clicking through
       ...style
     }}>
-      <span style={{
+      <div style={{
+        display: 'inline-block',
+        maxWidth: '100%',
         ...baseStyle,
         ...textStyle
       }}>
         {currentSubtitle.text}
-      </span>
+      </div>
     </div>
   );
 };

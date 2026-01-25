@@ -9,6 +9,9 @@ export const introTitleSchema = z.object({
   titleColor: zColor(),
   backgroundColor: zColor(),
   backgroundImage: z.string().optional(),
+  src: z.string().optional(),
+  imageUrl: z.string().optional(),
+  image: z.string().optional(),
   logoUrl: z.string().optional(),
 });
 
@@ -18,10 +21,15 @@ export const IntroTitle: React.FC<z.infer<typeof introTitleSchema>> = ({
   titleColor = 'white',
   backgroundColor = 'black',
   backgroundImage,
+  src,
+  imageUrl,
+  image,
   logoUrl,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+
+  const bg = backgroundImage || src || imageUrl || image;
 
   const entrance = spring({
     frame,
@@ -40,9 +48,9 @@ export const IntroTitle: React.FC<z.infer<typeof introTitleSchema>> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor, justifyContent: "center", alignItems: "center" }}>
-        {backgroundImage && (
+        {bg && (
         <AbsoluteFill style={{ zIndex: 0 }}>
-            <SmartImage src={backgroundImage} style={{ width: '100%', height: '100%' }} />
+            <SmartImage src={bg} style={{ width: '100%', height: '100%' }} />
         </AbsoluteFill>
       )}
         <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", zIndex: 1 }}>

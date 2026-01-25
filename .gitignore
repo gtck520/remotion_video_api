@@ -46,3 +46,4 @@ server.log
 logs/
 .remotion_cache
 public/
+server/mcpbak.ts

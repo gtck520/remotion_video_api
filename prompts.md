@@ -16,13 +16,20 @@
 4.  **时长控制**: 总口播时长控制在 45-60 秒左右（约 150-200 字）。
 
 **输出格式 (JSON)**:
-必须返回一个包含 `segments` 数组的 JSON 对象。每个片段 (segment) 包含：
--   `text`: 口播文案。
--   `visual_idea`: 画面构思简述（例如：“大标题展示问题”、“对比图”、“列举三个优点”）。
+必须返回一个 JSON 对象，包含以下字段：
+-   `title`: 视频标题（简短有力，适合封面）。
+-   `fullContent`: 脚本全文内容（将所有口播文案合并）。
+-   `tags`: 3-5 个相关标签（字符串，使用 `|` 分割）。
+-   `segments`: 分镜片段数组。每个片段 (segment) 包含：
+    -   `text`: 口播文案。
+    -   `visual_idea`: 画面构思简述（例如：“大标题展示问题”、“对比图”、“列举三个优点”）。
 
 **示例输出**:
 ```json
 {
+  "title": "ChatGPT 的秘密",
+  "fullContent": "你知道为什么 ChatGPT 这么聪明吗？其实它读过的书，比人类几辈子读的都要多。",
+  "tags": "AI|ChatGPT|科普",
   "segments": [
     { "text": "你知道为什么 ChatGPT 这么聪明吗？", "visual_idea": "大号标题提出疑问" },
     { "text": "其实它读过的书，比人类几辈子读的都要多。", "visual_idea": "数据可视化或书本堆叠" }
@@ -51,15 +58,16 @@
 **🔄 标准操作流程 (SOP)**:
 1.  **第一步 (Discovery)**: 调用 `list_tools`。
     *   *思考*: “我需要先看看有哪些视频生成工具可用，以及它们需要什么参数。”
-2.  **第二步 (Audio Check)**: 调用 `exec_tool("list_music_styles", {})`。
-    *   *思考*: “我需要知道有哪些背景音乐风格可用，以免填错。”
-3.  **第三步 (Planning)**: 分析 `list_tools` 和 `list_music_styles` 的结果。
+2.  **第二步 (Resource Check)**: 
+    *   调用 `exec_tool("list_music_styles", {})` 查看背景音乐。
+    *   调用 `exec_tool("get_voice_list", {})` 获取高质量的音色列表。
+    *   *思考*: “我需要确认 BGM 风格和配音音色，确保音频正常。”
+3.  **第三步 (Planning)**: 分析结果。
     *   **关键策略**: 优先使用 **`generate_video_from_script`** 工具。
-    *   *原因*: 它是最高级的智能工具，能自动处理素材、TTS、音乐和字幕，成功率最高。
-    *   *注意*: 尽量避免使用底层的 `render_video`，除非 `generate_video_from_script` 不可用。
+    *   **音色选择**: 从 `get_voice_list` 结果中选择一个最匹配视频氛围的 `id` (例如 "7426720361732915209") 填入 `voice` 参数。
 4.  **第四步 (Execution)**: 调用 `exec_tool`。
     *   **tool_name**: `"generate_video_from_script"`
-    *   **arguments**: 构造包含 `script` 和 `bgMusicStyle` (来自步骤2) 的 JSON 对象。
+    *   **arguments**: 构造包含 `script`, `bgMusicStyle` 和 `voice` 的 JSON 对象。
 
 **🎨 视觉风格映射 (Visual Strategy)**:
 在构建 `script` 数组时 (作为 `arguments` 的一部分)，请根据脚本内容为每个场景指定 `type`：
@@ -76,6 +84,15 @@
 3.  **画面 (Visuals)**:
     - **`CaptionedVideo`**: 默认类型。系统会自动根据 `imageQuery` 搜索素材。
         - **AI 配图**: 设置 `aiImage: true` 可强制使用 AI 生成图片 (适合抽象概念)。
+        - **动效加强 (Visual Variety)**:
+            - **规则**: 必须为每个场景选择不同的 `imageAnimation` 和 `textAnimation` 组合，严禁连续两个场景使用相同的特效组合。
+            - `imageAnimation`: 可选 `"zoom-in"` (默认), `"zoom-out"`, `"pan-left"`, `"pan-right"`, `"static"`。
+            - `textAnimation`: 可选 `"slide-up"` (默认), `"fade-in"`, `"scale-up"`, `"pop-in"`。
+            - *搭配建议*: 
+                - 冲击力 (Hook): `zoom-in` + `pop-in`
+                - 叙事 (Story): `pan-left` + `fade-in`
+                - 强调 (Highlight): `static` + `scale-up`
+                - 结尾 (Outro): `zoom-out` + `slide-up`
 
 **🎵 音频配置**:
 - **`bgMusicStyle`**: 
@@ -90,6 +107,15 @@
     "bgMusicStyle": "Tech",
     "script": [ ... ]
   }
+}
+```
+
+**最终响应格式 (Final Output)**:
+工具执行成功后，请**仅**返回以下 JSON 对象（**严禁**添加任何 Markdown 标记或额外文字），以便后续节点直接调用：
+```json
+{
+  "taskId": "工具返回的 jobId",
+  "result": "工具返回的完整对象"
 }
 ```
 
@@ -116,4 +142,5 @@
     {{ $json }}
     ```
     ```
+*   **数据来源**: 使用编剧节点输出的 **整个 JSON 对象** (包含 `segments` 数组)。导演 LLM 会自动读取 `text` 作为字幕，读取 `visual_idea` 作为画面设计的参考。
 *   **数据来源**: 使用编剧节点输出的 **整个 JSON 对象** (包含 `segments` 数组)。导演 LLM 会自动读取 `text` 作为字幕，读取 `visual_idea` 作为画面设计的参考。

@@ -1,0 +1,36 @@
+@font-face {
+  font-family: 'Source Han Sans SC';
+  src: url('./fonts/SourceHanSansSC-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Source Han Sans SC';
+  src: url('./fonts/SourceHanSansSC-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Source Han Sans SC';
+  src: url('./fonts/SourceHanSansSC-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('./fonts/SourceHanSerifSC-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('./fonts/SourceHanSerifSC-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Fallback mappings if needed */

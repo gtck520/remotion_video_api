@@ -48,8 +48,8 @@
 - **触发方式**: 在场景属性中设置 `aiImage: true`。默认使用 Coze，如需指定可设置 `imageModel: "coze"` 或 `"glm-image"`。
 - **自动回退**: Pexels 搜索失败 -> AI 生成 (默认 Coze -> 回退 GLM) -> 纯文本动画 (KineticText)。
 - **配置**: 
-  - Coze: 需要在 `.env` 中设置 `COZE_API_TOKEN`, `COZE_WORKFLOW_ID`。
-    - **注意**: 如果您的 Coze Workflow 需要特定的用户上下文，请务必设置 `COZE_USER_TOKEN` (默认推荐设置)。
+  - Coze AI 配图: 需要在 `.env` 中设置 `AUTO_API_TOKEN` (调用工作流的鉴权 Token), `COZE_WORKFLOW_ID` (工作流 ID), `COZE_USER_TOKEN` (用户上下文 Token)。
+  - Coze 语音合成: 仅依赖 `COZE_USER_TOKEN`。
   - GLM: 需要在 `.env` 中设置 `ZHIPU_API_KEY`。
 
 ### 6. 🛡️ 稳健的兜底机制 (Robust Fallback)

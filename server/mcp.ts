@@ -19,6 +19,36 @@ import { getChromiumOptions } from "./browser";
 import { generateAiImage } from "./services/imageGenerator";
 import { listMusicStyles, getMusicForStyle } from "./services/musicLibrary";
 
+// Concurrency Limiter for EdgeTTS
+class ConcurrencyLimiter {
+    private concurrency: number;
+    private active: number;
+    private queue: (() => void)[];
+
+    constructor(concurrency: number) {
+        this.concurrency = concurrency;
+        this.active = 0;
+        this.queue = [];
+    }
+
+    async run<T>(fn: () => Promise<T>): Promise<T> {
+        if (this.active >= this.concurrency) {
+            await new Promise<void>(resolve => this.queue.push(resolve));
+        }
+        this.active++;
+        try {
+            return await fn();
+        } finally {
+            this.active--;
+            if (this.queue.length > 0) {
+                const next = this.queue.shift();
+                if (next) next();
+            }
+        }
+    }
+}
+const ttsLimiter = new ConcurrencyLimiter(3);
+
 const getMp3Duration = util.promisify(mp3Duration);
 
 const AUTH_REQUIRED = process.env.AUTH_REQUIRED === 'true';
@@ -220,9 +250,11 @@ export const enrichScenes = async (script: any[], defaultVoice: string, port: nu
                  const publicUrl = `http://localhost:${port}/audio/${fileName}`;
                  
                  if (!fs.existsSync(filePath)) {
-                     const tts = new EdgeTTS({ voice });
-                     await tts.ttsPromise(processedScene.text, filePath);
-                 }
+                    await ttsLimiter.run(async () => {
+                        const tts = new EdgeTTS({ voice });
+                        await tts.ttsPromise(processedScene.text, filePath);
+                    });
+                }
                  
                  processedScene.audio = publicUrl;
                  const durationSec = await getMp3Duration(filePath);
@@ -664,6 +696,12 @@ export const setupMcp = (
               onBrowserDownload: (download) => {
                   const percent = Math.round((download.downloadedBytes / download.totalBytes) * 100);
                   console.log(`[MCP] Downloading browser: ${percent}% (${download.downloadedBytes}/${download.totalBytes})`);
+                  return {
+                      onProgress: (p) => {
+                          const progress = Math.round((p.downloadedBytes / p.totalBytes) * 100);
+                          console.log(`[MCP] Browser download progress: ${progress}%`);
+                      }
+                  };
               }
           });
             return {

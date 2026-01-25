@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, Img, OffthreadVideo, Loop } from 'remotion';
 import { z } from 'zod';
 import Matter from 'matter-js';
 
@@ -9,6 +9,8 @@ export const physicsStackSchema = z.object({
   backgroundColor: z.string().optional(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  src: z.string().optional(),
+  mediaType: z.enum(['image', 'video']).optional(),
 });
 
 export const PhysicsStack: React.FC<z.infer<typeof physicsStackSchema>> = ({
@@ -17,9 +19,11 @@ export const PhysicsStack: React.FC<z.infer<typeof physicsStackSchema>> = ({
   backgroundColor = '#111',
   title,
   subtitle,
+  src,
+  mediaType,
 }) => {
   const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const { width, height, fps, durationInFrames } = useVideoConfig();
 
   // Deterministic simulation per frame
   // This ensures that for a given frame, the output is always the same
@@ -82,6 +86,20 @@ export const PhysicsStack: React.FC<z.infer<typeof physicsStackSchema>> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor }}>
+       {src && (
+          <AbsoluteFill style={{ zIndex: 0 }}>
+              {mediaType === 'video' ? (
+                  <Loop durationInFrames={durationInFrames}>
+                      <OffthreadVideo src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />
+                  </Loop>
+              ) : (
+                  <Img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />
+              )}
+              {/* Dark overlay to ensure physics items pop */}
+              <AbsoluteFill style={{ backgroundColor: backgroundColor, opacity: 0.8 }} />
+          </AbsoluteFill>
+       )}
+
        {bodies.map((body) => (
            <div
             key={body.key}

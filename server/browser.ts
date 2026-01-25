@@ -54,12 +54,8 @@ export async function ensureLocalBrowser(): Promise<string> {
 export const getChromiumOptions = (executablePath?: string) => {
     const finalExecutablePath = executablePath || process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome';
     console.log(`[Browser] getChromiumOptions resolved executablePath: ${finalExecutablePath}`);
-    return {
-        enableMultiProcessOnLinux: true,
-    headless: false, // Disable Remotion's headless logic to use our own args
-    ignoreDefaultArgs: ["--headless"],
-    executablePath: finalExecutablePath,
-    args: [
+    
+    const args = [
         "--headless=new",
         "--enable-unsafe-swiftshader", 
         "--no-sandbox", 
@@ -77,8 +73,53 @@ export const getChromiumOptions = (executablePath?: string) => {
         "--mute-audio",
         "--use-gl=swiftshader",
         "--use-angle=swiftshader"
-    ], 
-};
+    ];
+
+    // Inject Proxy if available
+    const proxyEnabled = process.env.PROXY_ENABLED !== 'false';
+    let proxyServer = process.env.HTTP_PROXY || process.env.http_proxy || process.env.HTTPS_PROXY || process.env.https_proxy;
+    
+    if (proxyEnabled && proxyServer) {
+        // Fix for running outside Docker (e.g. local dev or Trae environment)
+        // where host.docker.internal is not available.
+        if (proxyServer.includes('host.docker.internal') && !fs.existsSync('/.dockerenv')) {
+            console.log(`[Browser] Replacing host.docker.internal with 127.0.0.1 in proxy config`);
+            proxyServer = proxyServer.replace('host.docker.internal', '127.0.0.1');
+        }
+
+        console.log(`[Browser] Using proxy server: ${proxyServer}`);
+        args.push(`--proxy-server=${proxyServer}`);
+        
+        const noProxy = process.env.NO_PROXY || process.env.no_proxy;
+        let finalNoProxy = noProxy || '';
+        
+        // Critical: Always bypass Coze CDN and image domains as they are accessible in CN and proxy might fail
+        // Also ensure localhost is bypassed to avoid routing local traffic through proxy
+        const requiredBypass = [
+            's.coze.cn', '.coze.cn', '.byteimg.com', 'p26-official-plugin-sign.byteimg.com',
+            'localhost', '127.0.0.1', '::1'
+        ];
+        const currentBypassList = finalNoProxy.split(',').map(s => s.trim());
+        
+        for (const domain of requiredBypass) {
+            if (!currentBypassList.includes(domain)) {
+                finalNoProxy = finalNoProxy ? `${finalNoProxy},${domain}` : domain;
+            }
+        }
+
+        if (finalNoProxy) {
+            console.log(`[Browser] Using proxy bypass list: ${finalNoProxy}`);
+            args.push(`--proxy-bypass-list=${finalNoProxy}`);
+        }
+    }
+
+    return {
+        enableMultiProcessOnLinux: true,
+        headless: false, // Disable Remotion's headless logic to use our own args
+        ignoreDefaultArgs: ["--headless"],
+        executablePath: finalExecutablePath,
+        args, 
+    };
 }
 
 function findBrowserInDir(baseDir: string): string | null {

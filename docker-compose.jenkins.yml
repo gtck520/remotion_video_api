@@ -6,17 +6,22 @@ services:
       dockerfile: Dockerfile
       args:
         - BASE_IMAGE_TAG=${BASE_IMAGE_TAG:-latest}
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - no_proxy=${no_proxy}
+        - http_proxy=${http_proxy:-http://host.docker.internal:7890}
+        - https_proxy=${https_proxy:-http://host.docker.internal:7890}
+        - no_proxy=${no_proxy:-localhost,127.0.0.1,remotion-server,auto.kanglan.vip,api.coze.cn,myserver.kanglan.vip}
     ports:
       - "${PORT:-3005}:3005"
     environment:
       # Force internal port to 3005 to match the port mapping target, 
       # regardless of what PORT is set to in the .env file (which controls the host port).
       - PORT=3005
+      - HTTP_PROXY=${http_proxy:-http://host.docker.internal:7890}
+      - HTTPS_PROXY=${https_proxy:-http://host.docker.internal:7890}
+      - NO_PROXY=${no_proxy:-localhost,127.0.0.1,remotion-server,auto.kanglan.vip,api.coze.cn,myserver.kanglan.vip}
     env_file:
       - ${ENV_FILE:-.env.prod}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /www/remotion/logs:/app/logs
       - /www/remotion/renders:/app/renders

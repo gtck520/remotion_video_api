@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, spring } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, spring, Img, OffthreadVideo, Video, Loop } from 'remotion';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 
@@ -9,6 +9,8 @@ export const smartExplainerSchema = z.object({
   subtitle: z.string().optional(),
   points: z.array(z.string()).optional(),
   image: z.string().optional(),
+  videoUrl: z.string().optional(),
+  mediaType: z.enum(['image', 'video']).optional(),
   accentColor: zColor().optional().default('#3b82f6'),
   theme: z.enum(['Light', 'Dark', 'Navy']).optional().default('Dark'),
 });
@@ -25,12 +27,18 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
   subtitle,
   points,
   image,
+  videoUrl,
+  mediaType,
   accentColor = '#3b82f6',
   theme = 'Dark',
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const colors = themes[theme] || themes.Dark; // Safe fallback
+
+  // Determine media source for background
+  const mediaSrc = videoUrl || image;
+  const isVideo = mediaType === 'video' || (mediaSrc && mediaSrc.endsWith('.mp4'));
 
   const entranceSpring = spring({
     frame,
@@ -42,9 +50,9 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
   const translateY = interpolate(entranceSpring, [0, 1], [50, 0]);
 
   const containerStyle: React.CSSProperties = {
-    backgroundColor: colors.bg,
+    // backgroundColor: colors.bg, // Replaced by media handling below
     color: colors.text,
-    fontFamily: 'Inter, system-ui, sans-serif',
+    fontFamily: '"Source Han Sans SC", "Source Han Serif SC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "Hiragino Sans GB", "Heiti SC", "Inter", "system-ui", "sans-serif"',
     padding: 60,
   };
 
@@ -194,14 +202,34 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
               </p>
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {image ? (
-                <img src={image} style={{
-                  width: '100%',
-                  borderRadius: 24,
-                  boxShadow: `0 20px 50px -20px ${accentColor}40`,
-                  opacity: interpolate(frame, [20, 50], [0, 1]),
-                  transform: `scale(${interpolate(spring({ frame: frame - 20, fps }), [0, 1], [0.9, 1])})`,
-                }} />
+              {mediaSrc ? (
+                isVideo ? (
+                  <div style={{
+                    width: '100%',
+                    borderRadius: 24,
+                    boxShadow: `0 20px 50px -20px ${accentColor}40`,
+                    opacity: interpolate(frame, [20, 50], [0, 1]),
+                    transform: `scale(${interpolate(spring({ frame: frame - 20, fps }), [0, 1], [0.9, 1])})`,
+                    overflow: 'hidden',
+                    aspectRatio: '16/9',
+                  }}>
+                     <Loop durationInFrames={durationInFrames}>
+                        <OffthreadVideo 
+                          src={mediaSrc}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          muted
+                        />
+                     </Loop>
+                  </div>
+                ) : (
+                  <Img src={mediaSrc} style={{
+                    width: '100%',
+                    borderRadius: 24,
+                    boxShadow: `0 20px 50px -20px ${accentColor}40`,
+                    opacity: interpolate(frame, [20, 50], [0, 1]),
+                    transform: `scale(${interpolate(spring({ frame: frame - 20, fps }), [0, 1], [0.9, 1])})`,
+                  }} />
+                )
               ) : (
                 <div style={{
                   width: '100%',
@@ -291,8 +319,28 @@ export const SmartExplainer: React.FC<z.infer<typeof smartExplainerSchema>> = ({
   };
 
   return (
-    <AbsoluteFill style={containerStyle}>
-      {renderContent()}
+    <AbsoluteFill style={{ backgroundColor: colors.bg }}>
+      {/* Background Layer */}
+      {mediaSrc && (
+         <AbsoluteFill>
+            {isVideo ? (
+                <Loop durationInFrames={durationInFrames}>
+                   <OffthreadVideo 
+                      src={mediaSrc} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                   />
+                </Loop>
+            ) : (
+                <Img src={mediaSrc} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
+            {/* Overlay to ensure text readability */}
+            <AbsoluteFill style={{ backgroundColor: colors.bg, opacity: 0.85 }} /> 
+         </AbsoluteFill>
+      )}
+
+      <AbsoluteFill style={containerStyle}>
+        {renderContent()}
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

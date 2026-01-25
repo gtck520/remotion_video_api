@@ -1,4 +1,5 @@
 import { Composition } from "remotion";
+import "./fonts.css";
 import { HelloWorld, helloWorldCompSchema } from "./HelloWorld";
 import { IntroTitle, introTitleSchema } from "./templates/IntroTitle";
 import { KnowledgeCard, knowledgeCardSchema } from "./templates/KnowledgeCard";

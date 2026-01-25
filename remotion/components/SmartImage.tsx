@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Img, useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
+import { Img, useCurrentFrame, useVideoConfig, interpolate, OffthreadVideo, Loop, Video } from 'remotion';
 
 interface SmartImageProps {
   src: string;
@@ -15,6 +15,9 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const [error, setError] = useState(false);
+
+  // Simple video detection by extension
+  const isVideo = src && (src.toLowerCase().endsWith('.mp4') || src.toLowerCase().endsWith('.webm'));
 
   // Ken Burns Effect: 缓慢放大
   // 从 1.0 放大到 1.15，产生缓慢推镜头的效果
@@ -48,6 +51,25 @@ export const SmartImage: React.FC<SmartImageProps> = ({
         <div style={{ fontSize: 40, marginBottom: 10 }}>🖼️</div>
         <div style={{ fontSize: 16 }}>Image Unavailable</div>
       </div>
+    );
+  }
+
+  if (isVideo) {
+    return (
+        <div style={{ ...style, overflow: 'hidden' }}>
+            <Loop durationInFrames={durationInFrames}>
+                <Video
+                    src={src}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                    }}
+                    muted={true}
+                    crossOrigin="anonymous"
+                />
+            </Loop>
+        </div>
     );
   }
 
