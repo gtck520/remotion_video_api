@@ -6,6 +6,7 @@
     "build": "remotion bundle",
     "dev": "bun --watch server/index.ts",
     "start": "bun server/index.ts",
+    "server": "tsx server/index.ts",
     "lint": "eslint . && tsc",
     "remotion:upgrade": "remotion upgrade",
     "remotion:studio": "remotion studio"

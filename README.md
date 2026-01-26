@@ -42,16 +42,26 @@ npm install
 
 **本地开发/测试 (建议端口 3006)**：
 
-使用 Bun:
+使用 Bun (Mac/Linux/Windows):
 ```bash
 # 启动服务 (默认读取 .env 文件，请确保正确配置或软链接)
 PORT=3006 bun run server
 ```
 
 使用 NPM:
-```bash
-PORT=3006 npm run server
-```
+
+*   **Mac / Linux**:
+    ```bash
+    PORT=3006 npm run server
+    ```
+*   **Windows (PowerShell)**:
+    ```powershell
+    npm run server
+    ```
+*   **Windows (CMD)**:
+    ```cmd
+    npm run server
+    ```
 
 **生产环境部署 (默认端口 3005)**：
 
@@ -60,6 +70,22 @@ PORT=3006 npm run server
 ```bash
 docker-compose up -d
 ```
+
+### 5. 配置 MCP Server
+
+如果您需要将服务作为 MCP Server 接入 Claude/Cursor 等 AI 助手，需要配置 `mcpServers`。
+**示例配置**：
+```
+{
+  "mcpServers": {
+    "remotion-video": {
+      "env": {},
+      "url": "http://127.0.0.1:3005/mcp/sse?webhookUrl=http://127.0.0.1:5678/webhook/video-callback"
+    }
+  }
+}
+```
+webhookUrl 为您的 n8n 工作流回调地址，用于接收视频生成结果。
 
 ## 🛠️ 功能特性
 
