@@ -12,8 +12,16 @@
 
 ### 2. 安装依赖
 
+您可以选择使用 `bun` (推荐) 或 `npm` 进行安装。
+
+**使用 Bun (推荐):**
 ```bash
 bun install
+```
+
+**使用 NPM:**
+```bash
+npm install
 ```
 
 ### 3. 配置文件
@@ -34,9 +42,15 @@ bun install
 
 **本地开发/测试 (建议端口 3006)**：
 
+使用 Bun:
 ```bash
 # 启动服务 (默认读取 .env 文件，请确保正确配置或软链接)
 PORT=3006 bun run server
+```
+
+使用 NPM:
+```bash
+PORT=3006 npm run server
 ```
 
 **生产环境部署 (默认端口 3005)**：
