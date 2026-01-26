@@ -1,244 +1,80 @@
-# Remotion 视频生成服务 (Video Generation Service)
+# Remotion Video Generation Server
 
-基于 **Remotion**、**Express** 和 **React Three Fiber** 构建的高性能视频生成 API。专为 **n8n** 自动化工作流和 **AI Agent (MCP)** 集成而设计，支持 2D/3D 混合渲染、物理模拟和智能排版。
-
-## 🌟 核心特性
-
-- **🤖 AI 友好型 Schema**: 专为 LLM 设计的 `SmartExplainer` 组件，只需提供文本即可生成专业演示视频。
-- **🧊 3D & 物理引擎**: 集成 `React Three Fiber` 和 `Matter.js`，支持 3D 产品展示、重力掉落和粒子流体效果。
-- **🔌 MCP 原生支持**: 实现 Model Context Protocol (SSE)，允许 Claude/Cursor 直接调用渲染能力。
-- **⚡ 高性能架构**: 基于 Bun 运行时，内置并发控制和渲染队列，支持 Docker 部署。
-- **🧩 模块化场景**: 拥有 `MasterSequence` 主控模版，支持 15+ 种原子场景自由组合。
-- **🗣️ 多语言 TTS**: 集成 Microsoft Edge TTS，默认支持中文 (`zh-CN-XiaoxiaoNeural`) 及全球多种语音。
-
----
-
-## 📅 最新更新 (2026-01-20)
-
-### 1. 📱 自定义视频尺寸
-支持在生成时指定视频宽高，完美适配不同平台：
-- **手机竖屏 (Shorts/TikTok/Reels)**: 设置 `width: 1080`, `height: 1920`
-- **电脑横屏 (YouTube/Bilibili)**: 设置 `width: 1920`, `height: 1080` (默认)
-
-### 2. 🎨 字幕样式定制
-告别单一字幕，新增多种预设风格：
-- **`neon`**: 赛博朋克霓虹发光风格。
-- **`comic`**: 趣味漫画风格 (黄色黑边)。
-- **`clean`**: 极简无背景风格。
-- **`default`**: 标准黑底白字。
-同时也支持通过 `style` 和 `textStyle` 进行完全自定义。
-
-### 3. 新增 "Cool" 视觉组件
-为了摆脱单调的 PPT 风格，我们引入了高视觉冲击力的模版：
-- **`CyberIntro` (赛博开场)**: 带有故障艺术效果 (Glitch) 的科技感开场。
-- **`PhysicsStack` (物理堆叠)**: 使用物理引擎模拟物体掉落，比普通列表更生动。
-- **`TechCode` (代码演示)**: 真实的打字机效果，支持语法高亮，适合展示代码片段。
-- **`ThreeDText` (3D 文字)**: 具有真实光影的悬浮 3D 文本 (已优化：移除外部 HDR 依赖，提升稳定性)。
-
-### 4. SmartExplainer 增强
-- **布局升级**: 完美支持 `SplitImage` (左文右图) 和 `BulletList` (要点列表) 布局。
-- **稳健性提升**: 增加了完善的默认值处理，防止因 LLM 漏传参数导致的渲染失败。
-- **中文优化**: 默认中文字体和排版优化。
-
-### 5. 🧠 智能图像生成 (AI Image Generation)
-当 Pexels 无法找到合适的媒体素材，或者您希望创造超现实的视觉效果时，系统支持 AI 图像生成。
-- **当前支持模型**: 
-  - Coze Workflow (`coze`, 默认, 推荐)
-  - 智谱 GLM-Image (`glm-image`, 备用)
-- **触发方式**: 在场景属性中设置 `aiImage: true`。默认使用 Coze，如需指定可设置 `imageModel: "coze"` 或 `"glm-image"`。
-- **自动回退**: Pexels 搜索失败 -> AI 生成 (默认 Coze -> 回退 GLM) -> 纯文本动画 (KineticText)。
-- **配置**: 
-  - Coze AI 配图: 需要在 `.env` 中设置 `AUTO_API_TOKEN` (调用工作流的鉴权 Token), `COZE_WORKFLOW_ID` (工作流 ID), `COZE_USER_TOKEN` (用户上下文 Token)。
-  - Coze 语音合成: 仅依赖 `COZE_USER_TOKEN`。
-  - GLM: 需要在 `.env` 中设置 `ZHIPU_API_KEY`。
-
-### 6. 🛡️ 稳健的兜底机制 (Robust Fallback)
-为了确保 n8n 自动化流程永不中断，我们引入了多级降级策略：
-1. **优先**: 使用用户提供的 `imageUrl` / `videoUrl`。
-2. **次选**: 使用 `imageQuery` 在 Pexels 搜索视频/图片。
-3. **AI 补充**: 如果开启 AI 且 Pexels 失败，尝试 Coze (默认) 或 GLM-4 生成图片。
-4. **最终兜底**: 如果以上全失败，自动将场景降级为 **KineticText** (动态文字)，确保视频能够生成，绝不报错退出。
-
-### 7. 🎵 云端背景音乐库 (WebDAV BGM)
-支持通过 WebDAV 协议挂载云端音乐库，实现“云端管理，本地高速渲染”。
-- **分类管理**: 在 WebDAV 根目录下按风格建立文件夹（如 `/Music/Tech`, `/Music/Cinematic`）。
-- **智能调用**: 
-  - 使用 `list_music_styles` 工具查询可用风格。
-  - 在 `render_video` 时传入 `{ bgMusic: { style: "Tech" } }`。
-  - 系统会自动下载、缓存、计算时长并循环播放。
-- **智能混音**: 背景音乐 (0.3) 会与 TTS 语音 (1.0) 自动混音，**互不冲突**。
-- **配置**: 在 `.env` 中设置 `WEBDAV_URL`, `WEBDAV_USERNAME`, `WEBDAV_PASSWORD`。
-
-### 8. 示例脚本
-新增示例脚本，展示如何生成不同风格的视频：
-- `generate_cool_cn.ts`: 展示如何组合 CyberIntro, SmartExplainer, PhysicsStack 等高级组件生成酷炫中文视频。
-- `generate_study_video.ts`: **(New)** 展示如何使用 **Coze AI 配图** 生成情感类短视频 ("为什么要努力读书")，包含自动配音和智能字幕。
-
----
+基于 Remotion 的视频生成服务端，支持通过 API 或 MCP 协议生成带有特效、字幕、AI 语音的短视频。
 
 ## 🚀 快速开始
 
-### 1. 安装与启动
+### 1. 环境准备
 
-推荐使用 [Bun](https://bun.sh/) 以获得最佳性能。
+- Node.js & Bun Runtime
+- Chrome (用于 Headless 渲染)
+- Docker (可选，用于生产环境部署)
+
+### 2. 安装依赖
 
 ```bash
-# 安装依赖
 bun install
-
-# 复制环境变量
-cp .env.example .env
-
-# 启动开发服务器 (默认端口 3006)
-# 注意：为了让 n8n/MCP 能够连接，请确保 AUTH_REQUIRED 设置正确
-bun run dev
 ```
 
-### 2. 验证服务
+### 3. 配置文件
 
-访问 `http://localhost:3006/renders` 确认服务运行正常。
-或者使用 curl 测试健康状态：
+项目使用 `.env.dev` (开发/测试) 和 `.env.prod` (生产) 来区分环境配置。
+
+1. 复制示例配置：
+   ```bash
+   cp .env.example .env.dev
+   ```
+2. 编辑 `.env.dev` 填入必要的 API Key (OpenAI, Pexels, Aliyun OSS 等)。
+
+**注意**：
+- **开发/测试环境**：建议使用 `.env.dev`。
+- **生产环境 (Docker)**：默认加载 `.env.prod`。
+
+### 4. 启动服务
+
+**本地开发/测试 (建议端口 3006)**：
+
 ```bash
-curl http://localhost:3006/api/health
+# 启动服务 (默认读取 .env 文件，请确保正确配置或软链接)
+PORT=3006 bun run server
 ```
 
-### 3. 运行示例
+**生产环境部署 (默认端口 3005)**：
 
-生成一个酷炫的 n8n 中文讲解视频：
+通常使用 Docker 运行，容器映射到宿主机 3005 端口。
 
 ```bash
-npx tsx generate_cool_cn.ts
+docker-compose up -d
 ```
 
----
+## 🛠️ 功能特性
 
-## 🤖 MCP 集成指南 (AI Agent & n8n)
+- **MCP Server 支持**：可以直接作为 MCP Server 接入 Claude/Cursor 等 AI 助手。
+- **智能视频生成**：
+  - 支持 `CyberIntro`, `SmartExplainer` 等多种模板。
+  - 自动根据脚本匹配素材 (Pexels) 或生成 AI 图片。
+  - 集成 EdgeTTS 语音合成。
+  - 自动生成字幕和特效。
+- **n8n 集成**：提供 API 接口供 n8n 工作流调用，实现自动化视频生产。
 
-本服务提供 MCP (SSE) 接口，完美支持 **n8n (LangChain)**、**Cursor**、**Claude Desktop** 等 AI 客户端。
+## 📖 文档指南
 
-### n8n 集成优势
-- **全自动素材**: 只需要给文案，Remotion 会自动找图、配音、剪辑。
-- **永不失败**: 即使网络波动导致素材缺失，也能生成纯文字视频。
-- **AI 绘图**: 让 n8n 调用智谱 AI 为视频生成独一无二的配图。
+- [n8n 工作流集成指南](./n8n-workflow-guide.md)
 
-### 连接配置
+## ❓ 常见问题
 
-**SSE 端点**: `http://localhost:3006/mcp/sse`
-
-**配置文件示例 (Claude Desktop):**
-
-```json
-{
-  "mcpServers": {
-    "remotion-video": {
-      "url": "http://localhost:3006/mcp/sse?token=YOUR_VIP_TOKEN_HERE"
-    }
-  }
-}
-```
-
-> **注意**: 如果您在 `.env` 中开启了 `AUTH_REQUIRED=true`，必须将您的 Token 拼接到 URL 的查询参数中 (`?token=...`)。否则连接会被拒绝。
-
-> **错误示范 (请勿模仿)**: 不要同时配置 `command` (node) 和 `url`。本服务作为独立服务器运行，不需要 MCP 客户端来启动它。
+- **构建卡死/超时**：请检查 Docker 镜像源配置，或确认内存资源是否充足（建议 > 4GB）。
+- **MCP 连接失败**：请检查服务端日志 (`logs/app.log`)，确认服务是否正常启动且端口开放。
 
 ---
 
-## 💡 AI 自动化工作流 (n8n / LLM)
+## 👥 AI+自动化交流群
 
-要生成高质量视频，建议采用 **"编剧 -> 导演 -> 渲染"** 的工作流。
+专注于 **AI + n8n + Coze + RPA** 等工具的自动化实战，致力于利用技术为工作提效。
 
-### 1. 获取 Schema
-项目根目录下的 `schema_export.json` 包含了所有可用组件的定义。将其内容作为 "System Prompt" 的一部分提供给 LLM。
+欢迎扫码加入交流或关注公众号获取最新教程：
 
-### 2. 使用 SmartExplainer (智能演示)
-这是最强大的通用组件，LLM 只需决定 "讲什么" 和 "怎么讲 (版式)"。
-
-**支持的 Layouts:**
-- **`Title`**: 章节封面，大标题+副标题。
-- **`BulletList`**: 知识点列举，逐条显示。
-- **`Quote`**: 金句引用，强调核心观点。
-- **`SplitImage`**: 左文右图，适合案例展示。
-- **`BigStat`**: 巨大数字，强调数据。
-
-**LLM 生成示例 (JSON):**
-```json
-{
-  "type": "SmartExplainer",
-  "durationInFrames": 150,
-  "props": {
-    "layout": "BulletList",
-    "title": "Remotion 的优势",
-    "points": ["基于 React", "视频即代码", "完全可编程"],
-    "theme": "Navy",
-    "accentColor": "#60a5fa"
-  }
-}
-```
-
-### 3. 使用 3D & 特效组件
-- **`ProductShowcase3D`**: 3D 盒子展示，支持环境光照和旋转 (无需外部网络)。
-- **`ThreeDText`**: 悬浮的 3D 文字 (内置光照，无需外部 HDR)。
-- **`PhysicsStack`**: 物体受重力掉落堆叠 (基于 Matter.js)。
-- **`ParticleFlow`**: 炫酷的粒子流动背景 (基于 Simplex Noise)。
-- **`CyberIntro`**: 赛博朋克风格故障艺术开场。
-- **`TechCode`**: 动态代码输入展示。
-
----
-
-## 🎬 可用模版 (MasterSequence)
-
-推荐始终使用 `MasterSequence` 模版，通过 `scenes` 数组组合不同场景。
-
-| 场景类型 (Type) | 描述 | 核心参数 |
-|:---|:---|:---|
-| **SmartExplainer** | **[推荐]** 智能排版演示 | `layout`, `title`, `points`, `theme`, `voice` |
-| **CyberIntro** | **[NEW]** 赛博风格开场 | `title`, `subtitle` |
-| **PhysicsStack** | **[NEW]** 物理掉落效果 | `items` (数组), `voice` |
-| **TechCode** | **[NEW]** 代码演示 | `code`, `language`, `theme` |
-| **ThreeDText** | **[NEW]** 3D 动态文字 | `text`, `size` |
-| **ProductShowcase3D** | **[NEW]** 3D 产品展示 | `productColor`, `boxSize` |
-| **ParticleFlow** | 粒子流场 | `primaryColor`, `speed` |
-| **IntroTitle** | 简约标题 | `title`, `subtitle` |
-| **KnowledgeCard** | 知识卡片 | `title`, `points`, `imageUrl` |
-
----
-
-## 🔌 API 参考
-
-### 提交渲染任务
-`POST /renders`
-
-**Body (基础示例):**
-```json
-{
-  "compositionId": "MasterSequence",
-  "width": 1080,      // [可选] 视频宽度，默认 1920
-  "height": 1920,     // [可选] 视频高度，默认 1080
-  "inputProps": {
-    "subtitleSettings": {
-        "variant": "neon" // [可选] 字幕风格: default | clean | neon | comic
-    },
-    "scenes": [
-      {
-        "type": "SmartExplainer",
-        "durationInFrames": 120,
-        "props": { "layout": "Title", "title": "Hello World" }
-      }
-    ]
-  }
-}
-```
-
-### 查询任务状态
-`GET /renders/:jobId`
-
----
-
-## 🛠️ 维护与清理
-
-- 渲染产物默认保留 1 小时。
-- 使用 `npm run clean` 手动清理 `renders/` 目录。
-- 3D 组件已优化为**离线可用**，不再依赖外部 HDR 贴图下载，适合内网或受限网络环境部署。
-
-## 📄 许可证
-Private.
+| 扫码加好友 (备注: AI自动化) | 关注公众号 (陈程序员大康) |
+| :---: | :---: |
+| <img src="public/微信图片_2025-08-07_091400_557.jpg" width="200" /> | <img src="public/微信图片_20260126105845_127_405.jpg" width="200" /> |
+| **微信号: kan28256** | **获取最新自动化教程** |
