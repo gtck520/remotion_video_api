@@ -10,14 +10,22 @@ const CUSTOM_CACHE_DIR = path.resolve(".remotion_cache");
 function findBrowserInDir(dir: string): string | null {
     if (!fs.existsSync(dir)) return null;
 
-    const files = fs.readdirSync(dir, { recursive: true });
-    // Look for chrome-headless-shell (Linux/Mac) or chrome-headless-shell.exe (Windows)
-    const executable = files.find(f => {
-        const name = path.basename(f as string);
-        return name === "chrome-headless-shell" || name === "chrome-headless-shell.exe";
-    });
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
     
-    return executable ? path.join(dir, executable as string) : null;
+    for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        
+        if (entry.isDirectory()) {
+            const found = findBrowserInDir(fullPath);
+            if (found) return found;
+        } else if (entry.isFile()) {
+            // Check for exact binary name
+            if (entry.name === "chrome-headless-shell" || entry.name === "chrome-headless-shell.exe") {
+                return fullPath;
+            }
+        }
+    }
+    return null;
 }
 
 export async function ensureLocalBrowser(): Promise<string> {
@@ -77,3 +85,78 @@ export async function ensureLocalBrowser(): Promise<string> {
     console.log(`[Browser] Browser ready at: ${finalExecutable}`);
     return finalExecutable;
 }
+
+export function getChromiumOptions() {
+    // Attempt to resolve the executable path dynamically to satisfy Remotion on Windows
+    const executablePath = findBrowserInDir(CUSTOM_CACHE_DIR) || process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+    if (executablePath) {
+        console.log(`[Browser] Using explicit executable path: ${executablePath}`);
+    }
+
+    const args = [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--enable-unsafe-swiftshader",
+        "--disable-gpu",
+        "--use-gl=swiftshader",
+        "--use-angle=swiftshader",
+        "--no-zygote",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--mute-audio",
+    ];
+
+    // Inject Proxy if available
+    const proxyEnabled = process.env.PROXY_ENABLED !== 'false';
+    let proxyServer = process.env.HTTP_PROXY || process.env.http_proxy || process.env.HTTPS_PROXY || process.env.https_proxy;
+    
+    if (proxyEnabled && proxyServer) {
+        // Fix for running outside Docker (e.g. local dev or Trae environment)
+        // where host.docker.internal is not available.
+        if (proxyServer.includes('host.docker.internal') && !fs.existsSync('/.dockerenv')) {
+            console.log(`[Browser] Replacing host.docker.internal with 127.0.0.1 in proxy config`);
+            proxyServer = proxyServer.replace('host.docker.internal', '127.0.0.1');
+        }
+
+        console.log(`[Browser] Using proxy server: ${proxyServer}`);
+        args.push(`--proxy-server=${proxyServer}`);
+        
+        const noProxy = process.env.NO_PROXY || process.env.no_proxy;
+        let finalNoProxy = noProxy || '';
+        
+        // Critical: Always bypass Coze CDN and image domains as they are accessible in CN and proxy might fail
+        // Also ensure localhost is bypassed to avoid routing local traffic through proxy
+        const requiredBypass = [
+            's.coze.cn', '.coze.cn', '.byteimg.com', 'p26-official-plugin-sign.byteimg.com',
+            'localhost', '127.0.0.1', '::1'
+        ];
+        const currentBypassList = finalNoProxy.split(',').map(s => s.trim());
+        
+        for (const domain of requiredBypass) {
+            if (!currentBypassList.includes(domain)) {
+                finalNoProxy = finalNoProxy ? `${finalNoProxy},${domain}` : domain;
+            }
+        }
+
+        if (finalNoProxy) {
+            console.log(`[Browser] Using proxy bypass list: ${finalNoProxy}`);
+            args.push(`--proxy-bypass-list=${finalNoProxy}`);
+        }
+    }
+
+    return {
+        enableMultiProcessOnLinux: true,
+        headless: "new" as const,
+        gl: "swiftshader" as const,
+        executablePath, // Explicitly provide the path to avoid re-download
+        ignoreDefaultArgs: ["--headless"], // Important: we set headless: "new" manually or let Remotion handle it, but sometimes we need to clear defaults
+        args,
+    };
+}
+
+
+
+

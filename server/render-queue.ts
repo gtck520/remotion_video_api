@@ -121,16 +121,6 @@ export const makeRenderQueue = ({
         id: job.data.compositionId,
         inputProps: job.data.inputProps,
         chromiumOptions,
-        onBrowserDownload: (download) => {
-            const percent = Math.round((download.downloadedBytes / download.totalBytes) * 100);
-            console.log(`[RenderQueue] Downloading browser: ${percent}% (${download.downloadedBytes}/${download.totalBytes})`);
-            return {
-                onProgress: (p) => {
-                    const progress = Math.round((p.downloadedBytes / p.totalBytes) * 100);
-                    console.log(`[RenderQueue] Browser download progress: ${progress}%`);
-                }
-            };
-        },
       });
 
       // Override composition dimensions if provided
